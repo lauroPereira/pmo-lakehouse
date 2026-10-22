@@ -37,6 +37,33 @@ Registro do que foi executado, em ordem.
    ```
    O `bundle init` gerou o esqueleto (`databricks.yml`, `resources/`, `src/`, `tests/`). O `aitools install` instalou as skills do Databricks para o Claude Code, só neste projeto.
 
+3. **Origens externas** (substituem os arquivos do curso como fonte)
+   - **Postgres no Supabase** (plano gratuito): criar o projeto e copiar os dados do **Session pooler** em *Connect*. A conexão direta do Supabase é só IPv6 e não funciona a partir do serverless; o usuário do pooler tem a forma `postgres.<ref>`.
+   - **MongoDB Atlas M0** (conta pessoal): criar o cluster e um usuário de banco. Em *Network Access*, liberar `0.0.0.0/0`, porque o IP de saída do serverless da Free Edition não é fixo.
+4. **Segredos no Databricks** (escopo `pmo`). Nenhuma credencial entra no repositório; o código lê tudo com `dbutils.secrets.get("pmo", chave)`. Criados pelo CLI, com o valor digitado no prompt (o valor nunca aparece em comando, log ou commit):
+   ```powershell
+   databricks secrets create-scope pmo --profile <perfil>
+   databricks secrets put-secret pmo pg_host --profile <perfil>
+   ```
+   O `put-secret` foi repetido para cada chave:
+
+   | Chave | Conteúdo |
+   |---|---|
+   | `pg_host`, `pg_port`, `pg_db` | host, porta e banco do Session pooler do Supabase |
+   | `pg_user`, `pg_password` | usuário (`postgres.<ref>`) e senha |
+   | `mongo_user`, `mongo_password` | usuário e senha do Atlas |
+   | `mongo_host` | host do cluster, sem esquema (`<cluster>.<id>.mongodb.net`) |
+
+   Conferir sem expor valores: `databricks secrets list-secrets pmo --profile <perfil>`.
+5. **Teste de conectividade**: o notebook [`src/teste_conectividade.py`](src/teste_conectividade.py) testa TCP e login no Postgres, `ping` no Mongo e dois hosts de controle. Foi importado no workspace e executado como run serverless (`databricks workspace import` + `databricks jobs submit`). **Resultado: a Free Edition alcança as duas origens.**
+
+### Armadilhas encontradas
+
+- **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
+- **Atlas sem liberação de IP** não devolve erro de rede: o handshake TLS cai com `tlsv1 alert internal error`. Resolvido ao liberar `0.0.0.0/0`.
+- **Supabase direto = IPv6**; usar o Session pooler.
+- **`pymongo[srv]`** não existe como extra na versão 4.10; basta `pymongo` (traz `dnspython`).
+
 ## Como rodar
 
 Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer Databricks CLI autenticado e [uv](https://docs.astral.sh/uv/).
