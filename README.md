@@ -15,7 +15,7 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 | Fase | Artefato | Status |
 |---|---|---|
 | 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
-| 2. Entendimento dos dados | [`perfil_chaves`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py) e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md); confirmação das evidências da fase 1 | Em andamento |
+| 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas; [`perfil_chaves`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py) e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
 | 3. Preparação dos dados | Landing, bronze (feitas) e silver com quarentena | Em andamento |
 | 4. Modelagem | Gold: valor agregado (SPI, CPI, EAC) e regra do farol | A fazer |
 | 5. Avaliação | Critérios de sucesso da fase 1; perguntas de avaliação do Genie | A fazer |

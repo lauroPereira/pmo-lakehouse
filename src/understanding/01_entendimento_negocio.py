@@ -6,8 +6,8 @@
 # MAGIC > *"Databricks + Claude Code: projeto de dados do zero"* (canal Jornada de Dados, Luciano Vasconcelos). Conduzo o caso
 # MAGIC > como conduziria num cliente real, seguindo o CRISP-DM: tudo parte da dor do negócio.
 # MAGIC
-# MAGIC Números marcados com **†** vêm do material da imersão e só viram fato depois de confirmados na
-# MAGIC fase 2 (`02_entendimento_dados`).
+# MAGIC Números marcados com **†** vêm do material da imersão e foram **confirmados nos nossos dados** na fase 2
+# MAGIC (`02_entendimento_dados`, tabela esperado × encontrado: 11 de 11).
 
 # COMMAND ----------
 
