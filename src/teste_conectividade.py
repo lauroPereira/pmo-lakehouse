@@ -3,7 +3,7 @@
 # Segredos esperados no escopo `pmo`: pg_host, pg_port, pg_db, pg_user, pg_password, mongo_uri
 
 # COMMAND ----------
-# MAGIC %pip install pymongo[srv]==4.10.1 psycopg2-binary==2.9.10 --quiet
+# MAGIC %pip install pymongo==4.10.1 psycopg2-binary==2.9.10 --quiet
 
 # COMMAND ----------
 import socket
@@ -56,4 +56,4 @@ except Exception as e:
 # COMMAND ----------
 # Controle: um host público qualquer, para distinguir bloqueio geral de bloqueio específico
 print("Controle (pypi.org:443):", tcp("pypi.org", 443))
-print("Controle (example.com:5432):", tcp("example.com", 5432))
+print("Controle (example.com:5432, esperado falhar):", tcp("example.com", 5432))
