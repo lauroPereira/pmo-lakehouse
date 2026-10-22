@@ -22,4 +22,9 @@ If the CLI is not installed, see: https://docs.databricks.com/dev-tools/cli/inst
 
 ## Project Instructions
 
-<!-- Add your project-specific instructions, coding conventions, or notes here -->
+- **Metodologia:** o projeto segue o CRISP-DM. Toda etapa nova cita a dor (D1–D3) e a fase que atende; o escopo do ciclo está em `src/understanding/01_entendimento_negocio.py`.
+- **Organização:** `src/understanding` (fases 1 e 2), `src/sources` (simula as origens, fora do pipeline), `src/extraction` (origem → landing), `src/ingestion` (landing → bronze); as próximas camadas seguem o mesmo padrão por etapa.
+- **Dados:** os dados brutos do curso nunca entram no repositório; credenciais só em Databricks Secrets (escopo `pmo`).
+- **Workspace:** o código chega ao Databricks só por `databricks bundle deploy -t dev`; nada de cópias soltas no workspace.
+- **Documentação:** links nos `.md` são absolutos do GitHub (links relativos quebram no visualizador do workspace).
+- **Antes de cada push:** revisar no chat os arquivos alterados e se o incremento está documentado no README ou em `docs/`.

@@ -15,7 +15,7 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 | Fase | Artefato | Status |
 |---|---|---|
 | 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
-| 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas; [`perfil_chaves`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py) e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
+| 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
 | 3. Preparação dos dados | Landing, bronze (feitas) e silver com quarentena | Em andamento |
 | 4. Modelagem | Gold: valor agregado (SPI, CPI, EAC) e regra do farol | A fazer |
 | 5. Avaliação | Critérios de sucesso da fase 1; perguntas de avaliação do Genie | A fazer |
@@ -120,7 +120,7 @@ Registro do que foi executado, em ordem.
 9. **Bronze** ([`src/ingestion/ingestao_bronze.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
    - Cada linha leva `_arquivo` (o Parquet que a originou), `dt_raw`, `_origem`, `_carregado_em`, `_hash`, `_chave`, `_extraido_em` e `_lote_id`.
    - **Idempotência em dois níveis:** por arquivo (checkpoint do Auto Loader) e por conteúdo (`MERGE` só de inserção por `_hash`). Ler um snapshot repetido não duplica nada; linha alterada entra como nova versão, com histórico. A silver escolhe a versão vigente por `_chave`.
-   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md), reproduzíveis com [`perfil_chaves.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
+   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md), reproduzíveis na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
    - `bronze._controle_carga`: arquivos novos, linhas inseridas e a conferência de que todo hash da landing está na bronze; o notebook falha se algum faltar.
 
    **Evidência:**
@@ -144,11 +144,18 @@ Registro do que foi executado, em ordem.
 
 ## Como rodar
 
-Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer Databricks CLI autenticado e [uv](https://docs.astral.sh/uv/).
+Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer o Databricks CLI autenticado e as origens e segredos dos passos 3 e 4.
 
 ```bash
-uv sync --dev
 databricks bundle validate
 databricks bundle deploy -t dev
-uv run pytest
 ```
+
+O deploy envia o `src/` para `/Workspace/Users/<você>/.bundle/pmo_lakehouse/dev/files/src`. Ordem de execução dos notebooks:
+
+1. `sources/carregar_origens`: popula Supabase e Atlas (uma vez, ou para restaurar as origens).
+2. `extraction/extrair_para_landing`: snapshot das origens na landing.
+3. `ingestion/ingestao_bronze`: landing → bronze.
+4. `understanding/01_entendimento_negocio` e `understanding/02_entendimento_dados`: fases 1 e 2 do CRISP-DM.
+
+O job orquestrado entra no bundle na fase de implantação.

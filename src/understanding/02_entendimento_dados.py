@@ -87,6 +87,70 @@ display(spark.sql("""
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### 1.1 Chaves naturais (todas as fontes)
+# MAGIC
+# MAGIC A chave natural identifica um registro na origem; ela fundamenta a idempotência da bronze e a escolha da versão
+# MAGIC vigente na silver (método em `docs/chaves-idempotencia.md`). O teste é feito no **snapshot mais recente da
+# MAGIC landing**, isto é, na origem como foi entregue: `count(*)` contra `count(distinct chave)`.
+# MAGIC
+# MAGIC | Fonte | Chave candidata |
+# MAGIC |---|---|
+# MAGIC | `pmo.projetos` | `projeto_id` |
+# MAGIC | `pmo.status_semanal` | `projeto_id` + `data_status` |
+# MAGIC | `rh.colaboradores` | `colaborador_id` |
+# MAGIC | `financeiro.custos` | `lancamento_id` |
+# MAGIC | `timesheet.apontamentos` | `colaborador_id` + `projeto_id` + `semana_inicio` |
+# MAGIC | `compras.entregas_fornecedor` | `entrega_id` |
+# MAGIC | ClickUp · MS Project · Excel | `list.id` · nome do arquivo · arquivo + linha (o `_id` do Mongo muda a cada recarga e não serve) |
+
+# COMMAND ----------
+
+from pyspark.sql import functions as F
+
+LANDING = f"/Volumes/{dbutils.widgets.get('catalog')}/raw/landing"
+FONTES_LANDING = {
+    "pmo.projetos": "postgres/pmo_projetos",
+    "pmo.status_semanal": "postgres/pmo_status_semanal",
+    "rh.colaboradores": "postgres/rh_colaboradores",
+    "financeiro.custos": "postgres/financeiro_custos",
+    "timesheet.apontamentos": "postgres/timesheet_apontamentos",
+    "compras.entregas_fornecedor": "postgres/compras_entregas_fornecedor",
+    "mongo.clickup_listas": "mongo/clickup_listas",
+    "mongo.msproject_projetos": "mongo/msproject_projetos",
+    "mongo.excel_cronogramas": "mongo/excel_cronogramas",
+}
+
+
+def ultimo_snapshot(pasta):
+    df = spark.read.parquet(f"{LANDING}/{pasta}")
+    return df.filter(F.col("_extraido_em") == df.agg(F.max("_extraido_em")).first()[0])
+
+
+linhas = []
+for fonte, pasta in FONTES_LANDING.items():
+    n, k = ultimo_snapshot(pasta).agg(F.count("*"), F.countDistinct("_chave")).first()
+    linhas.append((fonte, n, k, n - k))
+display(spark.createDataFrame(linhas, "fonte string, linhas long, chaves_distintas long, duplicadas long"))
+
+# O único caso com duplicadas: são registros diferentes (hash distinto) ou cópias idênticas?
+display(
+    ultimo_snapshot("postgres/rh_colaboradores")
+    .groupBy("colaborador_id")
+    .agg(F.count("*").alias("linhas"), F.countDistinct("_hash").alias("versoes_distintas"),
+         F.collect_set("nome").alias("nomes"))
+    .filter("linhas > 1")
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Resultado:** todas as chaves são únicas, exceto `colaborador_id`: 3 ids (COL0102, COL0257, COL0433) com 2 linhas
+# MAGIC cada, que diferem só na caixa do nome (`Renata Monteiro` e `RENATA MONTEIRO`). A bronze guarda as duas versões; a
+# MAGIC silver precisa normalizar o nome antes de deduplicar. Fica fora do escopo deste ciclo, mas registrado.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 2. Perfil das fontes e defeitos encontrados
 # MAGIC
 # MAGIC Cada consulta abaixo mede um defeito. Dado sujo não dá erro: dá número errado em silêncio.

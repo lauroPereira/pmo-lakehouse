@@ -182,7 +182,7 @@ display(spark.createDataFrame(
 # MAGIC
 # MAGIC | Fase do CRISP-DM | O que entrega neste ciclo |
 # MAGIC |---|---|
-# MAGIC | 2. Entendimento dos dados | Confirma as evidências marcadas com †, perfila chaves e defeitos (`02_entendimento_dados`, `perfil_chaves`) |
+# MAGIC | 2. Entendimento dos dados | Confirma as evidências marcadas com †, perfila chaves e defeitos (`02_entendimento_dados`) |
 # MAGIC | 3. Preparação dos dados | Silver: modelo único de tarefas, custos tipados, quarentena com motivo |
 # MAGIC | 4. Modelagem | Gold: modelo de valor agregado (SPI, CPI, EAC) e regra do farol |
 # MAGIC | 5. Avaliação | Critérios da seção 5 conferidos; perguntas de avaliação do assistente (Genie) |
