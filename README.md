@@ -78,7 +78,7 @@ Registro do que foi executado, em ordem.
    | Mongo `vertice` | `msproject_projetos` | um XML por documento | 15 |
    | Mongo `vertice` | `excel_cronogramas` | uma linha de cronograma por documento | 1.663 |
 
-   Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
+   Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Para ver as tabelas no painel do Supabase, troque o seletor de schema (padrão `public`) para `pmo`, `rh`, `financeiro`, `timesheet` ou `compras`. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
 
 ### Armadilhas encontradas
 
