@@ -20,6 +20,23 @@ Sintéticos, de uma empresa fictícia (Vértice Tecnologia) fornecida pela imers
 
 O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [docs/arquitetura.md](docs/arquitetura.md).
 
+## Passo a passo da criação do projeto
+
+Registro do que foi executado, em ordem.
+
+1. **Instalação do Databricks CLI** (Windows)
+   ```bash
+   winget search databricks
+   winget install Databricks.DatabricksCLI
+   databricks --version
+   ```
+2. **Inicialização do projeto**
+   ```bash
+   databricks bundle init
+   databricks aitools install --agents claude-code --scope project --skills-only --experimental
+   ```
+   O `bundle init` gerou o esqueleto (`databricks.yml`, `resources/`, `src/`, `tests/`). O `aitools install` instalou as skills do Databricks para o Claude Code, só neste projeto.
+
 ## Como rodar
 
 Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer Databricks CLI autenticado e [uv](https://docs.astral.sh/uv/).
