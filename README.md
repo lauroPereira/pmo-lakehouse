@@ -80,6 +80,26 @@ Registro do que foi executado, em ordem.
 
    Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Para ver as tabelas no painel do Supabase, troque o seletor de schema (padrão `public`) para `pmo`, `rh`, `financeiro`, `timesheet` ou `compras`. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
 
+8. **Bronze** ([`src/bronze/ingestao_bronze.py`](src/bronze/ingestao_bronze.py)): copia as 9 origens para `workspace.bronze` sem limpar nada, de forma **incremental e idempotente**.
+   - **Postgres via JDBC** (credenciais dos segredos): tabela `pg_<schema>_<tabela>`, colunas como vieram.
+   - **Mongo via pymongo** (o conector Spark do Mongo não está disponível no serverless): tabela `mongo_<coleção>`, com o documento inteiro em JSON na coluna `documento`. O JSON cru evita inferir schema de dado sujo; quem interpreta é a silver.
+   - **Chave de idempotência = `_hash`**, o SHA-256 do conteúdo da linha (no Mongo, do documento sem `_id` e `_carregado_em`, que mudam a cada recarga). A carga é um `MERGE` só de inserção: linha igual não faz nada; linha nova ou alterada entra como nova versão, preservando o histórico. `_chave` guarda a chave natural, e a silver escolhe a versão vigente.
+   - **Chaves naturais** (perfiladas nos dados, únicas em todas as tabelas): `projeto_id`; `projeto_id`+`data_status`; `colaborador_id` (**não é única**: os 3 duplicados do caso seguem na bronze para a silver tratar); `lancamento_id`; `colaborador_id`+`projeto_id`+`semana_inicio`; `entrega_id`; no Mongo, `list.id`, `_arquivo` e `_arquivo`+`_linha`. O `_id` do Mongo não serve: é regenerado quando a origem é recarregada.
+   - **Marca d'água** nos 4 fatos (`custos.data`, `status_semanal.data_status`, `apontamentos.semana_inicio`, `entregas.data_pedido`): lê só `data >= máxima já carregada − 28 dias`, para pegar lançamentos retroativos. Projetos, colaboradores e o Mongo são lidos por inteiro.
+   - **Limite conhecido:** exclusões na origem não são detectadas.
+   - Toda linha leva `_origem`, `_carregado_em`, `_lote_id`, `_hash` e `_chave`.
+   - **Controle de carga:** `bronze._controle_carga` guarda, por lote, linhas lidas, inseridas e a conferência de que todo hash lido está na bronze; o notebook falha se algum faltar.
+
+   **Evidência de idempotência e incrementalidade:**
+
+   | Execução | Linhas inseridas | Observação |
+   |---|---|---|
+   | 1ª (carga inicial) | 61.360 | 9 de 9 conferem |
+   | 2ª (sem mudança na origem) | 0 | fatos leram só a janela (ex.: 1.107 de 23.640 custos) |
+   | 3ª (após [`simular_mudancas.py`](src/origens/simular_mudancas.py)) | 5 | 2 custos novos (1 retroativo), 1 projeto alterado, 1 linha Excel nova, 1 lista ClickUp alterada |
+
+   Depois da simulação, a origem foi restaurada com `carregar_origens` e a bronze recriada do zero, para não deixar linhas simuladas.
+
 ### Armadilhas encontradas
 
 - **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
