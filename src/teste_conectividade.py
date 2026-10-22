@@ -1,6 +1,6 @@
 # Databricks notebook source
 # Teste de conectividade da Free Edition (serverless) com as origens externas.
-# Segredos esperados no escopo `pmo`: pg_host, pg_port, pg_db, pg_user, pg_password, mongo_uri
+# Segredos esperados no escopo `pmo`: pg_host, pg_port, pg_db, pg_user, pg_password, mongo_user, mongo_password, mongo_host
 
 # COMMAND ----------
 # MAGIC %pip install pymongo==4.10.1 psycopg2-binary==2.9.10 --quiet
@@ -48,7 +48,10 @@ except Exception as e:
 from pymongo import MongoClient
 
 try:
-    client = MongoClient(secret("mongo_uri"), serverSelectionTimeoutMS=10000)
+    from urllib.parse import quote_plus
+
+    uri = f"mongodb+srv://{quote_plus(secret('mongo_user'))}:{quote_plus(secret('mongo_password'))}@{secret('mongo_host')}/"
+    client = MongoClient(uri, serverSelectionTimeoutMS=10000)
     print("Mongo: OK ->", client.admin.command("ping"))
 except Exception as e:
     print("Mongo: FALHOU:", type(e).__name__, str(e)[:300])
