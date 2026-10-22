@@ -6,7 +6,7 @@ Respostas de IA sobre dados só valem o que vale o dado por baixo. O projeto mos
 
 ## Fontes (sintéticas, Vértice Tecnologia)
 
-Sistema corporativo em PostgreSQL (PMO, RH, financeiro, timesheet, compras) e exports das ferramentas dos gerentes em MongoDB (ClickUp, MS Project, Excel). Contratos em PDF ficam fora deste ciclo. Todas as fontes entram na bronze; silver e gold cobrem só o necessário para D1–D3 (ver [`01_entendimento_negocio`](../src/understanding/01_entendimento_negocio.py)). Dados brutos do curso não vão para o repositório.
+Sistema corporativo em PostgreSQL (PMO, RH, financeiro, timesheet, compras) e exports das ferramentas dos gerentes em MongoDB (ClickUp, MS Project, Excel). Contratos em PDF ficam fora deste ciclo. Todas as fontes entram na bronze; silver e gold cobrem só o necessário para D1–D3 (ver [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py)). Dados brutos do curso não vão para o repositório.
 
 ## Camadas (Unity Catalog, serverless)
 

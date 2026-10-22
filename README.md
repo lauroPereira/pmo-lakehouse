@@ -6,7 +6,7 @@ Saúde da entrega numa fábrica de software: lakehouse em Databricks com camada 
 
 ## O problema
 
-Uma fábrica de software com 60 projetos de clientes controla cada um numa ferramenta diferente (Excel, ClickUp, MS Project). A diretoria não consegue dizer **quais projetos estão atrasados, quanto o atraso vai custar e em quais o status reportado não bate com a realidade**. Este é o escopo do primeiro ciclo; ociosidade de pessoas, atraso de fornecedores e previsão de risco ficam no backlog. O entendimento completo do negócio está em [`01_entendimento_negocio`](src/understanding/01_entendimento_negocio.py).
+Uma fábrica de software com 60 projetos de clientes controla cada um numa ferramenta diferente (Excel, ClickUp, MS Project). A diretoria não consegue dizer **quais projetos estão atrasados, quanto o atraso vai custar e em quais o status reportado não bate com a realidade**. Este é o escopo do primeiro ciclo; ociosidade de pessoas, atraso de fornecedores e previsão de risco ficam no backlog. O entendimento completo do negócio está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py).
 
 ## Metodologia: CRISP-DM
 
@@ -14,8 +14,8 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 
 | Fase | Artefato | Status |
 |---|---|---|
-| 1. Entendimento do negócio | [`01_entendimento_negocio`](src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
-| 2. Entendimento dos dados | [`perfil_chaves`](src/understanding/perfil_chaves.py) e [docs/chaves-idempotencia.md](docs/chaves-idempotencia.md); confirmação das evidências da fase 1 | Em andamento |
+| 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
+| 2. Entendimento dos dados | [`perfil_chaves`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py) e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md); confirmação das evidências da fase 1 | Em andamento |
 | 3. Preparação dos dados | Landing, bronze (feitas) e silver com quarentena | Em andamento |
 | 4. Modelagem | Gold: valor agregado (SPI, CPI, EAC) e regra do farol | A fazer |
 | 5. Avaliação | Critérios de sucesso da fase 1; perguntas de avaliação do Genie | A fazer |
@@ -39,7 +39,7 @@ Sintéticos, de uma empresa fictícia (Vértice Tecnologia) fornecida pela imers
 
 ## Origem e créditos
 
-O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. A narrativa de negócio (pessoas, sistemas e dores) é uma simulação minha sobre esse caso fictício. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [docs/arquitetura.md](docs/arquitetura.md).
+O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. A narrativa de negócio (pessoas, sistemas e dores) é uma simulação minha sobre esse caso fictício. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [docs/arquitetura.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/arquitetura.md).
 
 ## Organização do código
 
@@ -86,7 +86,7 @@ Registro do que foi executado, em ordem.
    | `mongo_host` | host do cluster, sem esquema (`<cluster>.<id>.mongodb.net`) |
 
    Conferir sem expor valores: `databricks secrets list-secrets pmo --profile <perfil>`.
-5. **Teste de conectividade**: o notebook [`src/diagnostics/teste_conectividade.py`](src/diagnostics/teste_conectividade.py) testa TCP e login no Postgres, `ping` no Mongo e dois hosts de controle. Foi importado no workspace e executado como run serverless (`databricks workspace import` + `databricks jobs submit`). **Resultado: a Free Edition alcança as duas origens.**
+5. **Teste de conectividade**: o notebook [`src/diagnostics/teste_conectividade.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/diagnostics/teste_conectividade.py) testa TCP e login no Postgres, `ping` no Mongo e dois hosts de controle. Foi importado no workspace e executado como run serverless (`databricks workspace import` + `databricks jobs submit`). **Resultado: a Free Edition alcança as duas origens.**
 
 6. **Dados brutos no Volume** (fora do git). Os arquivos do curso sobem para `workspace.raw.material`, que a carga lê:
    ```powershell
@@ -96,7 +96,7 @@ Registro do que foi executado, em ordem.
    ```
    (repetido para `excel`, `msproject`, `pmo`, `rh`, `financeiro`, `timesheet` e `compras`).
    Também são criados os volumes `workspace.raw.landing` (snapshots em Parquet) e `workspace.raw.checkpoints` (estado do Auto Loader), com `databricks volumes create workspace raw <nome> MANAGED`.
-7. **Carga das origens**: o notebook [`src/sources/carregar_origens.py`](src/sources/carregar_origens.py) lê o Volume e popula as duas origens usando os segredos do passo 4. É idempotente (recria tabelas e esvazia coleções) e **não limpa nada**: os defeitos de dado ficam na origem, para a bronze e a silver tratarem.
+7. **Carga das origens**: o notebook [`src/sources/carregar_origens.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/sources/carregar_origens.py) lê o Volume e popula as duas origens usando os segredos do passo 4. É idempotente (recria tabelas e esvazia coleções) e **não limpa nada**: os defeitos de dado ficam na origem, para a bronze e a silver tratarem.
 
    | Origem | Destino | Conteúdo | Registros |
    |---|---|---|---|
@@ -112,15 +112,15 @@ Registro do que foi executado, em ordem.
 
    Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Para ver as tabelas no painel do Supabase, troque o seletor de schema (padrão `public`) para `pmo`, `rh`, `financeiro`, `timesheet` ou `compras`. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
 
-8. **Landing zone** ([`src/extraction/extrair_para_landing.py`](src/extraction/extrair_para_landing.py)): lê cada origem **por inteiro** e grava um **snapshot completo** em Parquet no Volume `workspace.raw.landing`, em `<fonte>/<tabela>/dt_raw=AAAA-MM-DD/lote_<id>/`. Cada execução é uma fotografia da origem naquele momento, mesmo quando nada mudou; os arquivos são imutáveis.
+8. **Landing zone** ([`src/extraction/extrair_para_landing.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/extraction/extrair_para_landing.py)): lê cada origem **por inteiro** e grava um **snapshot completo** em Parquet no Volume `workspace.raw.landing`, em `<fonte>/<tabela>/dt_raw=AAAA-MM-DD/lote_<id>/`. Cada execução é uma fotografia da origem naquele momento, mesmo quando nada mudou; os arquivos são imutáveis.
    - Postgres via JDBC e Mongo via pymongo (o conector Spark do Mongo não está disponível no serverless).
    - Cada linha leva `_hash` (SHA-256 do conteúdo; no Mongo, do documento sem `_id` e `_carregado_em`, que mudam a cada recarga), `_chave` (chave natural), `_extraido_em` e `_lote_id`.
    - `bronze._controle_extracao` compara linhas lidas na origem × linhas gravadas na landing.
    - **Por que snapshot completo:** a landing vira uma cópia auditável e reprocessável, sem depender de marca d'água; exclusões na origem passam a ser detectáveis comparando as chaves de dois snapshots. O custo é armazenamento (cada snapshot repete a origem, poucos MB aqui); para tabelas grandes eu voltaria ao incremental ou CDC.
-9. **Bronze** ([`src/ingestion/ingestao_bronze.py`](src/ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
+9. **Bronze** ([`src/ingestion/ingestao_bronze.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
    - Cada linha leva `_arquivo` (o Parquet que a originou), `dt_raw`, `_origem`, `_carregado_em`, `_hash`, `_chave`, `_extraido_em` e `_lote_id`.
    - **Idempotência em dois níveis:** por arquivo (checkpoint do Auto Loader) e por conteúdo (`MERGE` só de inserção por `_hash`). Ler um snapshot repetido não duplica nada; linha alterada entra como nova versão, com histórico. A silver escolhe a versão vigente por `_chave`.
-   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](docs/chaves-idempotencia.md), reproduzíveis com [`perfil_chaves.py`](src/understanding/perfil_chaves.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
+   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md), reproduzíveis com [`perfil_chaves.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
    - `bronze._controle_carga`: arquivos novos, linhas inseridas e a conferência de que todo hash da landing está na bronze; o notebook falha se algum faltar.
 
    **Evidência:**
@@ -129,7 +129,7 @@ Registro do que foi executado, em ordem.
    |---|---|---|
    | 1ª extração + bronze | 61.360 | 9 de 9 tabelas conferem |
    | 2ª extração, sem mudança na origem | 0 | 1 arquivo novo por tabela, nenhuma linha nova |
-   | 3ª, após [`simular_mudancas.py`](src/sources/simular_mudancas.py) | 5 | 2 custos novos, 1 projeto alterado, 1 linha Excel nova, 1 lista ClickUp alterada; cada linha aponta para o `_arquivo` do snapshot que a trouxe |
+   | 3ª, após [`simular_mudancas.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/sources/simular_mudancas.py) | 5 | 2 custos novos, 1 projeto alterado, 1 linha Excel nova, 1 lista ClickUp alterada; cada linha aponta para o `_arquivo` do snapshot que a trouxe |
    | Replay: bronze apagada e reconstruída só da landing | 61.365 | mesma contagem, sem tocar nas origens |
 
    Depois da simulação, landing, bronze e checkpoints foram apagados e refeitos com as origens restauradas, para não deixar linhas simuladas.
@@ -139,6 +139,7 @@ Registro do que foi executado, em ordem.
 - **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
 - **Atlas sem liberação de IP** não devolve erro de rede: o handshake TLS cai com `tlsv1 alert internal error`. Resolvido ao liberar `0.0.0.0/0`.
 - **Supabase direto = IPv6**; usar o Session pooler.
+- **Links relativos quebram no workspace.** No deploy do bundle, notebooks `.py` perdem a extensão e o visualizador de Markdown do Databricks resolve links relativos a partir da raiz do host (404). Os links dos `.md` apontam para o GitHub, que funciona nos dois lugares.
 - **`pymongo[srv]`** não existe como extra na versão 4.10; basta `pymongo` (traz `dnspython`).
 
 ## Como rodar

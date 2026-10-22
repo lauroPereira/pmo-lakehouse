@@ -1,6 +1,6 @@
 # Chaves de idempotência e marcas d'água da bronze
 
-Como as chaves e as colunas de data da bronze foram escolhidas, e o que o perfilamento mostrou. Reproduzível com [`src/understanding/perfil_chaves.py`](../src/understanding/perfil_chaves.py), executado sobre `workspace.bronze` (carga inicial de 22/10/2026).
+Como as chaves e as colunas de data da bronze foram escolhidas, e o que o perfilamento mostrou. Reproduzível com [`src/understanding/perfil_chaves.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/perfil_chaves.py), executado sobre `workspace.bronze` (carga inicial de 22/10/2026).
 
 ## Método
 
