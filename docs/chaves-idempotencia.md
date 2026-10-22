@@ -6,7 +6,7 @@ Como as chaves e as colunas de data da bronze foram escolhidas, e o que o perfil
 
 1. **Candidata = identificador de negócio** de cada tabela (coluna `*_id`; para tabelas semanais, o par projeto + data; no timesheet, colaborador + projeto + semana).
 2. **Teste de unicidade:** `count(*)` contra `count(distinct chave)`. Uma chave só é adotada como `_chave` natural se não houver duplicadas, ou se as duplicadas forem um defeito já conhecido, tratado na silver.
-3. **Marca d'água** só em tabelas de fatos (acrescentam linhas com o tempo). A coluna de data precisa ter zero nulos e **formato ISO** (`AAAA-MM-DD`), para a comparação textual `data >= '2026-09-18'` ser correta.
+3. **Marca d'água (avaliada e não usada):** a extração acabou sendo snapshot completo, então não há leitura incremental; a análise abaixo fica como base para tabelas grandes, onde a marca d'água volta a valer. Critério: só em tabelas de fatos (acrescentam linhas com o tempo). A coluna de data precisa ter zero nulos e **formato ISO** (`AAAA-MM-DD`), para a comparação textual `data >= '2026-09-18'` ser correta.
 4. **Mongo:** o `_id` (ObjectId) foi descartado como chave, porque `carregar_origens` apaga e reinsere os documentos e cada recarga gera `_id`s novos. Usa-se uma chave de negócio extraída do documento.
 5. **A idempotência em si não depende da chave natural**: ela vem do `_hash` (SHA-256 do conteúdo). A `_chave` natural serve para a silver escolher a versão vigente entre versões do mesmo registro.
 
@@ -30,7 +30,7 @@ São 3 ids (COL0102, COL0257, COL0433), cada um com 2 linhas **com conteúdo dif
 - A bronze guarda as duas versões, como deve (dado como chegou).
 - A chave natural sozinha não escolhe a versão vigente: a silver precisa **normalizar o nome** antes de deduplicar por `colaborador_id`. Fica como regra de qualidade da silver, com os 3 casos como valor esperado.
 
-## Resultado: marcas d'água
+## Resultado: colunas candidatas a marca d'água (não usadas no snapshot completo)
 
 | Tabela | Coluna | Nulos | Fora do ISO | Mínimo | Máximo |
 |---|---|---|---|---|---|
@@ -39,9 +39,8 @@ São 3 ids (COL0102, COL0257, COL0433), cada um com 2 linhas **com conteúdo dif
 | `pg_timesheet_apontamentos` | `semana_inicio` | 0 | 0 | 2024-12-02 | 2026-10-12 |
 | `pg_compras_entregas_fornecedor` | `data_pedido` | 0 | 0 | 2025-01-21 | 2026-10-16 |
 
-As quatro colunas atendem aos critérios. Para `entregas`, a escolha foi `data_pedido` (sempre preenchida) em vez de `data_entrega`, que fica vazia enquanto a entrega está aberta. A janela de 28 dias volta a ler as últimas semanas, para pegar lançamentos retroativos e linhas alteradas; o `MERGE` por hash garante que reler não duplica.
+As quatro colunas atendem aos critérios. Para `entregas`, a escolha foi `data_pedido` (sempre preenchida) em vez de `data_entrega`, que fica vazia enquanto a entrega está aberta. Se a extração virar incremental, uma janela de 28 dias reler as últimas semanas para pegar lançamentos retroativos; o `MERGE` por hash garante que reler não duplica.
 
 ## Fora do escopo
 
-- **Exclusões na origem** não são detectadas (a bronze só insere).
-- As tabelas `projetos` e `colaboradores` não têm coluna de data confiável; são lidas por inteiro a cada carga (60 e 523 linhas).
+- **Exclusões na origem** não são aplicadas na bronze (só insere), mas ficam detectáveis comparando as chaves de dois snapshots da landing.

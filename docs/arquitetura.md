@@ -12,7 +12,8 @@ Cronogramas em Excel, listas do ClickUp (JSON), MS Project, compras (CSV), contr
 
 | Camada | Conteúdo | Linguagem |
 |---|---|---|
-| bronze | dado como chegou, com origem, lote e data de carga; ingestão incremental idempotente (MERGE por hash do conteúdo, marca d'água nos fatos) e controle de carga | PySpark (JDBC + pymongo) |
+| landing | snapshot completo de cada origem em Parquet imutável (`dt_raw`, `lote`), com hash e chave natural | PySpark (JDBC + pymongo) |
+| bronze | Auto Loader sobre a landing; MERGE por hash (idempotente), `_arquivo` de origem em cada linha, controle de carga | PySpark |
 | silver | modelo único de tarefas, tipos corrigidos, deduplicação; regras de qualidade com **quarentena e motivo** | PySpark |
 | gold | SPI, CPI, estouro previsto, ociosidade × demanda, projetos com multa; cada KPI definido uma vez (metric views) | SQL |
 | ia | espaço Genie sobre a gold + conjunto de perguntas com resposta esperada | Genie, Python |

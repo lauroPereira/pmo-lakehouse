@@ -64,6 +64,7 @@ Registro do que foi executado, em ordem.
    databricks fs cp <pasta-dados>\clickup dbfs:/Volumes/workspace/raw/material/clickup --recursive --profile <perfil>
    ```
    (repetido para `excel`, `msproject`, `pmo`, `rh`, `financeiro`, `timesheet` e `compras`).
+   Também são criados os volumes `workspace.raw.landing` (snapshots em Parquet) e `workspace.raw.checkpoints` (estado do Auto Loader), com `databricks volumes create workspace raw <nome> MANAGED`.
 7. **Carga das origens**: o notebook [`src/origens/carregar_origens.py`](src/origens/carregar_origens.py) lê o Volume e popula as duas origens usando os segredos do passo 4. É idempotente (recria tabelas e esvazia coleções) e **não limpa nada**: os defeitos de dado ficam na origem, para a bronze e a silver tratarem.
 
    | Origem | Destino | Conteúdo | Registros |
@@ -80,25 +81,27 @@ Registro do que foi executado, em ordem.
 
    Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Para ver as tabelas no painel do Supabase, troque o seletor de schema (padrão `public`) para `pmo`, `rh`, `financeiro`, `timesheet` ou `compras`. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
 
-8. **Bronze** ([`src/bronze/ingestao_bronze.py`](src/bronze/ingestao_bronze.py)): copia as 9 origens para `workspace.bronze` sem limpar nada, de forma **incremental e idempotente**.
-   - **Postgres via JDBC** (credenciais dos segredos): tabela `pg_<schema>_<tabela>`, colunas como vieram.
-   - **Mongo via pymongo** (o conector Spark do Mongo não está disponível no serverless): tabela `mongo_<coleção>`, com o documento inteiro em JSON na coluna `documento`. O JSON cru evita inferir schema de dado sujo; quem interpreta é a silver.
-   - **Chave de idempotência = `_hash`**, o SHA-256 do conteúdo da linha (no Mongo, do documento sem `_id` e `_carregado_em`, que mudam a cada recarga). A carga é um `MERGE` só de inserção: linha igual não faz nada; linha nova ou alterada entra como nova versão, preservando o histórico. `_chave` guarda a chave natural, e a silver escolhe a versão vigente.
-   - **Chaves naturais** (método e resultados em [docs/chaves-idempotencia.md](docs/chaves-idempotencia.md), reproduzíveis com [`perfil_chaves.py`](src/bronze/perfil_chaves.py); únicas em todas as tabelas, exceto uma): `projeto_id`; `projeto_id`+`data_status`; `colaborador_id` (**não é única**: os 3 duplicados do caso diferem só na caixa do nome, seguem na bronze e a silver normaliza); `lancamento_id`; `colaborador_id`+`projeto_id`+`semana_inicio`; `entrega_id`; no Mongo, `list.id`, `_arquivo` e `_arquivo`+`_linha`. O `_id` do Mongo não serve: é regenerado quando a origem é recarregada.
-   - **Marca d'água** nos 4 fatos (`custos.data`, `status_semanal.data_status`, `apontamentos.semana_inicio`, `entregas.data_pedido`): lê só `data >= máxima já carregada − 28 dias`, para pegar lançamentos retroativos. Projetos, colaboradores e o Mongo são lidos por inteiro.
-   - **Limite conhecido:** exclusões na origem não são detectadas.
-   - Toda linha leva `_origem`, `_carregado_em`, `_lote_id`, `_hash` e `_chave`.
-   - **Controle de carga:** `bronze._controle_carga` guarda, por lote, linhas lidas, inseridas e a conferência de que todo hash lido está na bronze; o notebook falha se algum faltar.
+8. **Landing zone** ([`src/landing/extrair_para_landing.py`](src/landing/extrair_para_landing.py)): lê cada origem **por inteiro** e grava um **snapshot completo** em Parquet no Volume `workspace.raw.landing`, em `<fonte>/<tabela>/dt_raw=AAAA-MM-DD/lote_<id>/`. Cada execução é uma fotografia da origem naquele momento, mesmo quando nada mudou; os arquivos são imutáveis.
+   - Postgres via JDBC e Mongo via pymongo (o conector Spark do Mongo não está disponível no serverless).
+   - Cada linha leva `_hash` (SHA-256 do conteúdo; no Mongo, do documento sem `_id` e `_carregado_em`, que mudam a cada recarga), `_chave` (chave natural), `_extraido_em` e `_lote_id`.
+   - `bronze._controle_extracao` compara linhas lidas na origem × linhas gravadas na landing.
+   - **Por que snapshot completo:** a landing vira uma cópia auditável e reprocessável, sem depender de marca d'água; exclusões na origem passam a ser detectáveis comparando as chaves de dois snapshots. O custo é armazenamento (cada snapshot repete a origem, poucos MB aqui); para tabelas grandes eu voltaria ao incremental ou CDC.
+9. **Bronze** ([`src/bronze/ingestao_bronze.py`](src/bronze/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
+   - Cada linha leva `_arquivo` (o Parquet que a originou), `dt_raw`, `_origem`, `_carregado_em`, `_hash`, `_chave`, `_extraido_em` e `_lote_id`.
+   - **Idempotência em dois níveis:** por arquivo (checkpoint do Auto Loader) e por conteúdo (`MERGE` só de inserção por `_hash`). Ler um snapshot repetido não duplica nada; linha alterada entra como nova versão, com histórico. A silver escolhe a versão vigente por `_chave`.
+   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](docs/chaves-idempotencia.md), reproduzíveis com [`perfil_chaves.py`](src/bronze/perfil_chaves.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
+   - `bronze._controle_carga`: arquivos novos, linhas inseridas e a conferência de que todo hash da landing está na bronze; o notebook falha se algum faltar.
 
-   **Evidência de idempotência e incrementalidade:**
+   **Evidência:**
 
-   | Execução | Linhas inseridas | Observação |
+   | Execução | Linhas inseridas na bronze | Observação |
    |---|---|---|
-   | 1ª (carga inicial) | 61.360 | 9 de 9 conferem |
-   | 2ª (sem mudança na origem) | 0 | fatos leram só a janela (ex.: 1.107 de 23.640 custos) |
-   | 3ª (após [`simular_mudancas.py`](src/origens/simular_mudancas.py)) | 5 | 2 custos novos (1 retroativo), 1 projeto alterado, 1 linha Excel nova, 1 lista ClickUp alterada |
+   | 1ª extração + bronze | 61.360 | 9 de 9 tabelas conferem |
+   | 2ª extração, sem mudança na origem | 0 | 1 arquivo novo por tabela, nenhuma linha nova |
+   | 3ª, após [`simular_mudancas.py`](src/origens/simular_mudancas.py) | 5 | 2 custos novos, 1 projeto alterado, 1 linha Excel nova, 1 lista ClickUp alterada; cada linha aponta para o `_arquivo` do snapshot que a trouxe |
+   | Replay: bronze apagada e reconstruída só da landing | 61.365 | mesma contagem, sem tocar nas origens |
 
-   Depois da simulação, a origem foi restaurada com `carregar_origens` e a bronze recriada do zero, para não deixar linhas simuladas.
+   Depois da simulação, landing, bronze e checkpoints foram apagados e refeitos com as origens restauradas, para não deixar linhas simuladas.
 
 ### Armadilhas encontradas
 
