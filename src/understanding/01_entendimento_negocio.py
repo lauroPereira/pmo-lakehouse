@@ -106,6 +106,47 @@ display(spark.createDataFrame(
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### 5.1 As métricas: gerenciamento do valor agregado (PMBOK)
+# MAGIC
+# MAGIC Os KPIs de D1–D3 vêm do **gerenciamento do valor agregado** (*Earned Value Management*, EVM), a técnica do PMBOK/PMI
+# MAGIC que compara, numa mesma unidade (R$), o que foi planejado, o que foi entregue e o que foi gasto.
+# MAGIC
+# MAGIC **As quatro medidas de base**
+# MAGIC
+# MAGIC | Sigla | Nome | Pergunta que responde | De onde vem neste caso |
+# MAGIC |---|---|---|---|
+# MAGIC | BAC | *Budget at Completion*, orçamento no término | Quanto o projeto deveria custar no total? | `orcamento_custo` em `pmo.projetos` |
+# MAGIC | PV | *Planned Value*, valor planejado | Quanto do orçamento já deveria estar entregue hoje? | BAC × % planejado até hoje, pelas datas e horas de baseline das tarefas |
+# MAGIC | EV | *Earned Value*, valor agregado | Quanto do orçamento já foi de fato entregue? | BAC × % concluído, ponderado pelas horas das tarefas |
+# MAGIC | AC | *Actual Cost*, custo real | Quanto já foi gasto? | Soma de `financeiro.custos` do projeto até hoje |
+# MAGIC
+# MAGIC **Os índices e as projeções**
+# MAGIC
+# MAGIC | Métrica | Fórmula | Leitura |
+# MAGIC |---|---|---|
+# MAGIC | SV, variação de prazo | EV − PV | Negativa: entregou menos do que deveria até agora |
+# MAGIC | CV, variação de custo | EV − AC | Negativa: gastou mais do que entregou |
+# MAGIC | **SPI**, índice de desempenho de prazo | EV ÷ PV | **Abaixo de 1 é atraso.** 0,80 = entregou 80% do que deveria |
+# MAGIC | **CPI**, índice de desempenho de custo | EV ÷ AC | **Abaixo de 1 é custo acima do previsto.** 0,90 = cada R$ 1,00 gasto entregou R$ 0,90 |
+# MAGIC | **EAC**, estimativa no término | BAC ÷ CPI | Quanto o projeto vai custar se a eficiência de custo atual continuar |
+# MAGIC | ETC, estimativa para terminar | EAC − AC | Quanto ainda falta gastar |
+# MAGIC | **VAC**, variação no término | BAC − EAC | Negativa: **estouro previsto** (a resposta de D2, em R$) |
+# MAGIC
+# MAGIC **Exemplo.** Projeto com BAC de R$ 1.000.000. Hoje deveria ter entregue 50% (PV = R$ 500 mil), entregou 40%
+# MAGIC (EV = R$ 400 mil) e gastou R$ 500 mil (AC). Então SPI = 0,80 (atrasado), CPI = 0,80 (caro),
+# MAGIC EAC = R$ 1.250.000 e VAC = −R$ 250.000: se nada mudar, o projeto estoura em R$ 250 mil.
+# MAGIC
+# MAGIC **Decisões que ficam para as próximas fases**
+# MAGIC - **EAC:** a fórmula BAC ÷ CPI supõe que o desempenho de custo atual continua. Há variantes (por exemplo, AC + (BAC − EV),
+# MAGIC   quando o desvio é pontual); a escolha é registrada na fase 4 e conferida com o valor de referência na fase 5.
+# MAGIC - **% concluído e % planejado:** cada ferramenta (ClickUp, MS Project, Excel) informa avanço e baseline de um jeito;
+# MAGIC   a unificação na silver define a regra única, e as tarefas-resumo ficam fora da soma para não contar horas duas vezes.
+# MAGIC - **Farol calculado (D3):** faixas de SPI que equivalem a verde, amarelo e vermelho. Uma referência comum é verde
+# MAGIC   a partir de 0,95, amarelo entre 0,85 e 0,95 e vermelho abaixo de 0,85; é premissa a validar com o PMO.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 6. Requisito não funcional: dado confiável
 # MAGIC
 # MAGIC O negócio não pediu, mas é condição para as respostas de D1–D3 valerem: **todo número entregue precisa ser rastreável
