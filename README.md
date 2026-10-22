@@ -57,6 +57,29 @@ Registro do que foi executado, em ordem.
    Conferir sem expor valores: `databricks secrets list-secrets pmo --profile <perfil>`.
 5. **Teste de conectividade**: o notebook [`src/teste_conectividade.py`](src/teste_conectividade.py) testa TCP e login no Postgres, `ping` no Mongo e dois hosts de controle. Foi importado no workspace e executado como run serverless (`databricks workspace import` + `databricks jobs submit`). **Resultado: a Free Edition alcança as duas origens.**
 
+6. **Dados brutos no Volume** (fora do git). Os arquivos do curso sobem para `workspace.raw.material`, que a carga lê:
+   ```powershell
+   databricks schemas create raw workspace --profile <perfil>
+   databricks volumes create workspace raw material MANAGED --profile <perfil>
+   databricks fs cp <pasta-dados>\clickup dbfs:/Volumes/workspace/raw/material/clickup --recursive --profile <perfil>
+   ```
+   (repetido para `excel`, `msproject`, `pmo`, `rh`, `financeiro`, `timesheet` e `compras`).
+7. **Carga das origens**: o notebook [`src/origens/carregar_origens.py`](src/origens/carregar_origens.py) lê o Volume e popula as duas origens usando os segredos do passo 4. É idempotente (recria tabelas e esvazia coleções) e **não limpa nada**: os defeitos de dado ficam na origem, para a bronze e a silver tratarem.
+
+   | Origem | Destino | Conteúdo | Registros |
+   |---|---|---|---|
+   | Postgres | `pmo.projetos` | projetos | 60 |
+   | Postgres | `pmo.status_semanal` | status semanal com farol | 3.911 |
+   | Postgres | `rh.colaboradores` | colaboradores | 523 |
+   | Postgres | `financeiro.custos` | lançamentos de custo | 23.640 |
+   | Postgres | `timesheet.apontamentos` | horas disponíveis × apontadas | 30.883 |
+   | Postgres | `compras.entregas_fornecedor` | entregas de fornecedores | 640 |
+   | Mongo `vertice` | `clickup_listas` | um export de lista por documento | 25 |
+   | Mongo `vertice` | `msproject_projetos` | um XML por documento | 15 |
+   | Mongo `vertice` | `excel_cronogramas` | uma linha de cronograma por documento | 1.663 |
+
+   Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
+
 ### Armadilhas encontradas
 
 - **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
