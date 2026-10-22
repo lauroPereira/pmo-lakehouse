@@ -1,6 +1,21 @@
+# dados do curso e segredos nunca entram
 material_imersao/
-.claude/settings.local.json
-.DS_Store
-Thumbs.db
+.env
+*.pem
+
+# ambiente local e ferramentas
+.databricks/
+.claude/
+.qodo/
+.vscode/
+.venv/
+build/
+dist/
+*.egg-info
 __pycache__/
 .ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+scratch/**
+!scratch/README.md
+**/explorations/**

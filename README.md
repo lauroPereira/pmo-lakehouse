@@ -18,6 +18,15 @@ Sintéticos, de uma empresa fictícia (Vértice Tecnologia) fornecida pela imers
 
 ## Origem e créditos
 
-O projeto nasceu da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos). O caso, os dados e a sequência das aulas são da imersão.
+O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [docs/arquitetura.md](docs/arquitetura.md).
 
-O que fiz além do conteúdo das aulas fica registrado aqui conforme o projeto avança (veja também o [diário](diario.md)).
+## Como rodar
+
+Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer Databricks CLI autenticado e [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync --dev
+databricks bundle validate
+databricks bundle deploy -t dev
+uv run pytest
+```
