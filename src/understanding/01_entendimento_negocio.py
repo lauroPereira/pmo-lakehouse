@@ -141,8 +141,9 @@ display(spark.createDataFrame(
 # MAGIC   quando o desvio é pontual); a escolha é registrada na fase 4 e conferida com o valor de referência na fase 5.
 # MAGIC - **% concluído e % planejado:** cada ferramenta (ClickUp, MS Project, Excel) informa avanço e baseline de um jeito;
 # MAGIC   a unificação na silver define a regra única, e as tarefas-resumo ficam fora da soma para não contar horas duas vezes.
-# MAGIC - **Farol calculado (D3):** faixas de SPI que equivalem a verde, amarelo e vermelho. Uma referência comum é verde
-# MAGIC   a partir de 0,95, amarelo entre 0,85 e 0,95 e vermelho abaixo de 0,85; é premissa a validar com o PMO.
+# MAGIC - **Farol calculado (D3):** faixas de SPI que equivalem a verde, amarelo e vermelho. Adotado na gold: verde a partir
+# MAGIC   de 0,9, amarelo entre 0,8 e 0,9 e vermelho abaixo de 0,8 (as mesmas faixas de "atenção" e "crítico"); é premissa a
+# MAGIC   validar com o PMO. Projeto com farol declarado verde e farol calculado diferente de verde é um "melancia".
 
 # COMMAND ----------
 

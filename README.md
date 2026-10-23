@@ -16,10 +16,10 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 |---|---|---|
 | 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
 | 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
-| 3. Preparação dos dados | Landing, bronze (feitas) e silver com quarentena | Em andamento |
-| 4. Modelagem | Gold: valor agregado (SPI, CPI, EAC) e regra do farol | A fazer |
-| 5. Avaliação | Critérios de sucesso da fase 1; perguntas de avaliação do Genie | A fazer |
-| 6. Implantação | Job no bundle, dashboard e assistente em linguagem natural | A fazer |
+| 3. Preparação dos dados | Landing e bronze; silver [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_cadastros.py) e [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_tarefas.py): limpeza, tipos, wrangling, integração das 3 ferramentas e atributos por tarefa, com quarentena e registro de qualidade | Feito |
+| 4. Modelagem | [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/modeling/gold_kpis.py): valor agregado (SPI, CPI, EAC, estouro) e farol calculado, por projeto e carteira | Feito |
+| 5. Avaliação | [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py): 15 itens esperado × encontrado a cada execução (15 de 15); perguntas de avaliação do Genie a fazer | Em andamento |
+| 6. Implantação | Job [`pmo_lakehouse`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) no bundle (feito); dashboard e assistente em linguagem natural a fazer | Em andamento |
 
 ### Registro de iterações
 
@@ -49,6 +49,10 @@ O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita *
 | `src/sources/` | Simula os sistemas de origem (não faz parte do pipeline) |
 | `src/extraction/` | Origem → landing (Parquet) |
 | `src/ingestion/` | Landing → bronze (Auto Loader) |
+| `src/transformation/` | Bronze → silver (fase 3: preparação dos dados) |
+| `src/modeling/` | Silver → gold (fase 4: modelo de valor agregado) |
+| `src/evaluation/` | Esperado × encontrado (fase 5) |
+| `resources/` | Job do bundle que orquestra o pipeline (fase 6) |
 | `src/diagnostics/` | Utilitários fora do fluxo (teste de conectividade) |
 
 ## Passo a passo da criação do projeto
@@ -134,28 +138,34 @@ Registro do que foi executado, em ordem.
 
    Depois da simulação, landing, bronze e checkpoints foram apagados e refeitos com as origens restauradas, para não deixar linhas simuladas.
 
+10. **Silver** (fase 3 do CRISP-DM), recalculada a cada execução a partir da versão vigente da bronze:
+    - [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_cadastros.py): `silver.projetos` (ferramenta normalizada, datas nos 2 formatos), `silver.status_semanal` (farol normalizado e validado) e `silver.custos` (vírgula decimal corrigida, estorno sinalizado).
+    - [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_tarefas.py): `silver.tarefas`, o modelo único das 3 ferramentas (4.917 tarefas). Limpeza (TOTAL e tarefas-resumo descartadas), padronização de tipos (datas, % e horas em vários formatos), wrangling (JSON aberto; a fase do MS Project herdada da tarefa-resumo), integração (ClickUp ligado ao cadastro pelo código ou pelo nome) e atributos por tarefa (fração planejada, horas agregadas e planejadas, desvio, atraso).
+    - Qualidade: cada regra Q1–Q13 grava quantas linhas corrigiu, sinalizou, descartou ou pôs em quarentena em `silver.qualidade`; o que foi descartado ou ficou em quarentena vai para `silver.quarentena` com o motivo e o registro original.
+11. **Gold** (fase 4): [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/modeling/gold_kpis.py) cria `gold.kpi_projeto` (BAC, PV, EV, AC, SPI, CPI, EAC, VAC, estouro, situação, farol declarado × calculado, melancia) e `gold.kpi_carteira`.
+12. **Avaliação** (fase 5): [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py) confere 15 itens (D1, D2, D3 e o requisito de qualidade) contra os valores de referência, grava `gold.avaliacao` e falha o job se algum divergir.
+13. **Job** (fase 6): [`resources/pmo_lakehouse.job.yml`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) encadeia extração → bronze → silver_cadastros → silver_tarefas → gold → avaliação, no serverless, agendado para dias úteis às 6h (pausado no alvo `dev`).
+
 ### Armadilhas encontradas
 
 - **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
 - **Atlas sem liberação de IP** não devolve erro de rede: o handshake TLS cai com `tlsv1 alert internal error`. Resolvido ao liberar `0.0.0.0/0`.
 - **Supabase direto = IPv6**; usar o Session pooler.
 - **Links relativos quebram no workspace.** No deploy do bundle, notebooks `.py` perdem a extensão e o visualizador de Markdown do Databricks resolve links relativos a partir da raiz do host (404). Os links dos `.md` apontam para o GitHub, que funciona nos dois lugares.
+- **`bundle deploy` não desfaz edições feitas no workspace.** Ele só envia o que mudou localmente; para sobrescrever uma edição feita direto na pasta do bundle, use `databricks bundle sync --full`. Edite sempre no repositório.
+- **Contadores dentro do `foreachBatch` não voltam no serverless** (a função roda no servidor). A contagem de arquivos processados vem de `cloud_files_state(checkpoint)`.
+- **ANSI ligado no serverless:** `cast` inválido e divisão por zero geram erro em vez de nulo; a silver usa `try_cast`, `try_to_timestamp` e `try_divide`.
+- **`collect_list` não garante ordem**, mesmo depois de um `order by` na subconsulta; a avaliação monta textos com agregações explícitas.
 - **`pymongo[srv]`** não existe como extra na versão 4.10; basta `pymongo` (traz `dnspython`).
 
 ## Como rodar
 
-Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer o Databricks CLI autenticado e as origens e segredos dos passos 3 e 4.
+Projeto no formato Declarative Automation Bundle (`databricks.yml`). Requer o Databricks CLI autenticado e as origens e segredos dos passos 3 e 4 (e, uma vez, `sources/carregar_origens` para popular as origens).
 
 ```bash
 databricks bundle validate
 databricks bundle deploy -t dev
+databricks bundle run pmo_lakehouse -t dev
 ```
 
-O deploy envia o `src/` para `/Workspace/Users/<você>/.bundle/pmo_lakehouse/dev/files/src`. Ordem de execução dos notebooks:
-
-1. `sources/carregar_origens`: popula Supabase e Atlas (uma vez, ou para restaurar as origens).
-2. `extraction/extrair_para_landing`: snapshot das origens na landing.
-3. `ingestion/ingestao_bronze`: landing → bronze.
-4. `understanding/01_entendimento_negocio` e `understanding/02_entendimento_dados`: fases 1 e 2 do CRISP-DM.
-
-O job orquestrado entra no bundle na fase de implantação.
+O job roda extração → bronze → silver → gold → avaliação. Os notebooks `understanding/01_entendimento_negocio` e `understanding/02_entendimento_dados` documentam as fases 1 e 2 e podem ser abertos a qualquer momento.
