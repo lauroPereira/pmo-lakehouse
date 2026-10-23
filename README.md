@@ -19,7 +19,7 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 | 3. Preparação dos dados | Landing e bronze; silver [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_cadastros.py) e [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_tarefas.py): limpeza, tipos, wrangling, integração das 3 ferramentas e atributos por tarefa, com quarentena e registro de qualidade | Feito |
 | 4. Modelagem | [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/modeling/gold_kpis.py): valor agregado (SPI, CPI, EAC, estouro) e farol calculado, por projeto e carteira | Feito |
 | 5. Avaliação | [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py): 15 itens esperado × encontrado a cada execução (15 de 15); perguntas de avaliação do Genie a fazer | Em andamento |
-| 6. Implantação | Job [`pmo_lakehouse`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) no bundle (feito); dashboard e assistente em linguagem natural a fazer | Em andamento |
+| 6. Implantação | Job [`pmo_lakehouse`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) e dashboard [`saude_da_entrega`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/serving/saude_da_entrega.lvdash.json) no bundle (feitos); assistente em linguagem natural (Genie) a fazer | Em andamento |
 
 ### Registro de iterações
 
@@ -52,7 +52,8 @@ O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita *
 | `src/transformation/` | Bronze → silver (fase 3: preparação dos dados) |
 | `src/modeling/` | Silver → gold (fase 4: modelo de valor agregado) |
 | `src/evaluation/` | Esperado × encontrado (fase 5) |
-| `resources/` | Job do bundle que orquestra o pipeline (fase 6) |
+| `src/serving/` | Dashboard AI/BI sobre a gold (fase 6) |
+| `resources/` | Job e dashboard do bundle (fase 6) |
 | `src/diagnostics/` | Utilitários fora do fluxo (teste de conectividade) |
 
 ## Passo a passo da criação do projeto
@@ -146,6 +147,8 @@ Registro do que foi executado, em ordem.
 12. **Avaliação** (fase 5): [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py) confere 15 itens (D1, D2, D3 e o requisito de qualidade) contra os valores de referência, grava `gold.avaliacao` e falha o job se algum divergir.
 13. **Job** (fase 6): [`resources/pmo_lakehouse.job.yml`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) encadeia extração → bronze → silver_cadastros → silver_tarefas → gold → avaliação, no serverless, agendado para dias úteis às 6h (pausado no alvo `dev`).
 
+14. **Dashboard** (fase 6): [`saude_da_entrega.lvdash.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/serving/saude_da_entrega.lvdash.json), implantado pelo bundle ([`resources/saude_da_entrega.dashboard.yml`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/saude_da_entrega.dashboard.yml)) no SQL warehouse serverless. Quatro indicadores (projetos em andamento, críticos, estouro previsto e melancias), os 10 maiores estouros (D2), situação calculada × farol do gerente (D3) e a tabela de projetos com SPI e CPI coloridos (D1).
+
 ### Armadilhas encontradas
 
 - **Git Bash apaga as barras da URI.** Gravar `mongodb+srv://...` como segredo pelo Git Bash perdeu o `//` e a `/` final (o `pymongo` acusou "Reserved characters such as ':'"). Solução: guardar usuário, senha e host em segredos separados, sem barras, e montar a URI no código com `quote_plus`.
@@ -168,4 +171,4 @@ databricks bundle deploy -t dev
 databricks bundle run pmo_lakehouse -t dev
 ```
 
-O job roda extração → bronze → silver → gold → avaliação. Os notebooks `understanding/01_entendimento_negocio` e `understanding/02_entendimento_dados` documentam as fases 1 e 2 e podem ser abertos a qualquer momento.
+O job roda extração → bronze → silver → gold → avaliação; o deploy também publica o dashboard "Saúde da entrega". Os notebooks `understanding/01_entendimento_negocio` e `understanding/02_entendimento_dados` documentam as fases 1 e 2 e podem ser abertos a qualquer momento.

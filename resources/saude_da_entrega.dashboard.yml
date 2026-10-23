@@ -1,0 +1,9 @@
+# Dashboard de saúde da entrega sobre a gold (CRISP-DM fase 6: implantação).
+resources:
+  dashboards:
+    saude_da_entrega:
+      display_name: Saúde da entrega (pmo-lakehouse)
+      file_path: ../src/serving/saude_da_entrega.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: gold

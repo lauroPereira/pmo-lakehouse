@@ -1,0 +1,650 @@
+{
+  "datasets": [
+    {
+      "name": "ds_carteira",
+      "displayName": "Carteira (gold.kpi_carteira)",
+      "queryLines": [
+        "SELECT data_corte, projetos_em_andamento, projetos_criticos, projetos_em_atencao, projetos_melancia, ",
+        "estouro_previsto_total, maior_estouro_projeto, maior_estouro_valor ",
+        "FROM kpi_carteira"
+      ]
+    },
+    {
+      "name": "ds_projetos",
+      "displayName": "Projetos (gold.kpi_projeto)",
+      "queryLines": [
+        "SELECT projeto_id, cliente, segmento, ferramenta, gerente, ",
+        "round(spi, 2) AS spi, round(cpi, 2) AS cpi, ",
+        "pct_concluido_calculado / 100 AS pct_concluido, pct_planejado / 100 AS pct_planejado, ",
+        "bac, ac, eac, estouro_previsto, situacao, farol_declarado, farol_calculado, ",
+        "CASE WHEN melancia THEN 'sim' ELSE 'não' END AS melancia ",
+        "FROM kpi_projeto ",
+        "ORDER BY spi"
+      ]
+    },
+    {
+      "name": "ds_top_estouro",
+      "displayName": "Top 10 estouro (gold.kpi_projeto)",
+      "queryLines": [
+        "SELECT projeto_id, cliente, estouro_previsto ",
+        "FROM kpi_projeto ",
+        "WHERE estouro_previsto > 0 ",
+        "ORDER BY estouro_previsto DESC ",
+        "LIMIT 10"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "saude_da_entrega",
+      "displayName": "Saúde da entrega",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "widget": {
+            "name": "titulo",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Saúde da entrega · Vértice Tecnologia (cenário simulado)\n",
+                "\n",
+                "Projetos em andamento na data de corte (último status semanal). **D1** quais estão atrasados (SPI), **D2** quanto o atraso vai custar (estouro = EAC − orçamento) e **D3** onde o farol do gerente não bate com o calculado (melancia). Crítico: SPI ou CPI < 0,8; atenção: < 0,9."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-em-andamento",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_carteira",
+                  "fields": [
+                    {
+                      "name": "projetos_em_andamento",
+                      "expression": "`projetos_em_andamento`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "projetos_em_andamento",
+                  "displayName": "Projetos em andamento"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Projetos em andamento"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-criticos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_carteira",
+                  "fields": [
+                    {
+                      "name": "projetos_criticos",
+                      "expression": "`projetos_criticos`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "projetos_criticos",
+                  "displayName": "Projetos críticos"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Projetos críticos",
+                "showDescription": true,
+                "description": "SPI ou CPI abaixo de 0,8 (D1)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-estouro",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_carteira",
+                  "fields": [
+                    {
+                      "name": "estouro_previsto_total",
+                      "expression": "`estouro_previsto_total`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "estouro_previsto_total",
+                  "displayName": "Estouro previsto",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Estouro previsto da carteira",
+                "showDescription": true,
+                "description": "Soma de EAC − orçamento dos projetos que estouram (D2)"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi-melancias",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_carteira",
+                  "fields": [
+                    {
+                      "name": "projetos_melancia",
+                      "expression": "`projetos_melancia`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "projetos_melancia",
+                  "displayName": "Melancias"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Farol verde que esconde atraso",
+                "showDescription": true,
+                "description": "Declarado verde, SPI abaixo de 0,9 (D3)"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 2,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "estouro-por-projeto",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_top_estouro",
+                  "fields": [
+                    {
+                      "name": "sum(estouro_previsto)",
+                      "expression": "SUM(`estouro_previsto`)"
+                    },
+                    {
+                      "name": "projeto_id",
+                      "expression": "`projeto_id`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(estouro_previsto)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Estouro previsto (R$)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "BRL",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "projeto_id",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "value"
+                    }
+                  },
+                  "displayName": "Projeto"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Os 10 maiores estouros previstos (D2)",
+                "showDescription": true,
+                "description": "EAC − orçamento, só projetos com estouro"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "situacao-x-farol",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_projetos",
+                  "fields": [
+                    {
+                      "name": "count(projeto_id)",
+                      "expression": "COUNT(`projeto_id`)"
+                    },
+                    {
+                      "name": "situacao",
+                      "expression": "`situacao`"
+                    },
+                    {
+                      "name": "farol_declarado",
+                      "expression": "`farol_declarado`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "situacao",
+                  "displayName": "Situação calculada",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "crítico",
+                        "atenção",
+                        "ok"
+                      ]
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "count(projeto_id)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Projetos"
+                },
+                "color": {
+                  "fieldName": "farol_declarado",
+                  "displayName": "Farol do gerente",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "verde",
+                        "color": "#59A14F"
+                      },
+                      {
+                        "value": "amarelo",
+                        "color": "#F2C14E"
+                      },
+                      {
+                        "value": "vermelho",
+                        "color": "#E15759"
+                      }
+                    ]
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Situação calculada × farol do gerente (D3)",
+                "showDescription": true,
+                "description": "Verde dentro de crítico ou atenção é o farol que não bate com o dado"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 5,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "detalhe-projetos",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_projetos",
+                  "fields": [
+                    {
+                      "name": "projeto_id",
+                      "expression": "`projeto_id`"
+                    },
+                    {
+                      "name": "cliente",
+                      "expression": "`cliente`"
+                    },
+                    {
+                      "name": "segmento",
+                      "expression": "`segmento`"
+                    },
+                    {
+                      "name": "ferramenta",
+                      "expression": "`ferramenta`"
+                    },
+                    {
+                      "name": "pct_planejado",
+                      "expression": "`pct_planejado`"
+                    },
+                    {
+                      "name": "pct_concluido",
+                      "expression": "`pct_concluido`"
+                    },
+                    {
+                      "name": "spi",
+                      "expression": "`spi`"
+                    },
+                    {
+                      "name": "cpi",
+                      "expression": "`cpi`"
+                    },
+                    {
+                      "name": "estouro_previsto",
+                      "expression": "`estouro_previsto`"
+                    },
+                    {
+                      "name": "situacao",
+                      "expression": "`situacao`"
+                    },
+                    {
+                      "name": "farol_declarado",
+                      "expression": "`farol_declarado`"
+                    },
+                    {
+                      "name": "farol_calculado",
+                      "expression": "`farol_calculado`"
+                    },
+                    {
+                      "name": "melancia",
+                      "expression": "`melancia`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "projeto_id",
+                    "displayName": "Projeto"
+                  },
+                  {
+                    "fieldName": "cliente",
+                    "displayName": "Cliente"
+                  },
+                  {
+                    "fieldName": "segmento",
+                    "displayName": "Segmento"
+                  },
+                  {
+                    "fieldName": "ferramenta",
+                    "displayName": "Ferramenta"
+                  },
+                  {
+                    "fieldName": "pct_planejado",
+                    "displayName": "% planejado",
+                    "format": {
+                      "type": "number-percent",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 0
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "pct_concluido",
+                    "displayName": "% concluído",
+                    "format": {
+                      "type": "number-percent",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 0
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "spi",
+                    "displayName": "SPI",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0.8"
+                            },
+                            "operator": "<"
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 2
+                          }
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0.9"
+                            },
+                            "operator": "<"
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "fieldName": "cpi",
+                    "displayName": "CPI",
+                    "style": {
+                      "type": "basic",
+                      "rules": [
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0.8"
+                            },
+                            "operator": "<"
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 2
+                          }
+                        },
+                        {
+                          "condition": {
+                            "operand": {
+                              "type": "data-value",
+                              "value": "0.9"
+                            },
+                            "operator": "<"
+                          },
+                          "backgroundColor": {
+                            "themeColorType": "visualizationColors",
+                            "position": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "fieldName": "estouro_previsto",
+                    "displayName": "Estouro previsto",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "BRL",
+                      "abbreviation": "compact",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 2
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "situacao",
+                    "displayName": "Situação"
+                  },
+                  {
+                    "fieldName": "farol_declarado",
+                    "displayName": "Farol do gerente"
+                  },
+                  {
+                    "fieldName": "farol_calculado",
+                    "displayName": "Farol calculado"
+                  },
+                  {
+                    "fieldName": "melancia",
+                    "displayName": "Melancia"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Projetos em andamento, do pior para o melhor prazo"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 9
+          }
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FCFCFC",
+        "dark": "#1F272D"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "fontColor": {
+        "light": "#11171C",
+        "dark": "#E8ECF0"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#4E79A7",
+        "#F28E2C",
+        "#E15759",
+        "#76B7B2",
+        "#59A14F",
+        "#EDC948",
+        "#B07AA1"
+      ],
+      "widgetHeaderAlignment": "LEFT"
+    }
+  }
+}
