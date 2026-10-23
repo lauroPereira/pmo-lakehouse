@@ -35,6 +35,8 @@ Medalhão no Databricks Free Edition (Unity Catalog, serverless): `landing` (sna
 
 ## Dados
 
+O modelo de dados de cada camada (landing, bronze, silver e gold), em diagramas entidade-relacionamento, está em [docs/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/modelo-de-dados.md).
+
 Sintéticos, de uma empresa fictícia (Vértice Tecnologia) fornecida pela imersão. Nenhum dado real de clientes ou empregadores.
 
 ## Origem e créditos

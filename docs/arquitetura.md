@@ -16,6 +16,8 @@ MongoDB (Atlas) ───────┘   snapshot       dt_raw/lote        Aut
 
 ## Camadas (Unity Catalog, serverless)
 
+Colunas, tipos e relacionamentos de cada camada: [docs/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/modelo-de-dados.md).
+
 | Camada | Onde | Conteúdo | Código |
 |---|---|---|---|
 | landing | Volume `workspace.raw.landing` | snapshot completo de cada origem em Parquet imutável (`dt_raw`, `lote`), com `_hash` e `_chave` | `src/extraction/` (PySpark: JDBC + pymongo) |
