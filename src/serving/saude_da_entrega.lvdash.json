@@ -26,7 +26,8 @@
       "name": "ds_top_estouro",
       "displayName": "Top 10 estouro (gold.kpi_projeto)",
       "queryLines": [
-        "SELECT projeto_id, cliente, estouro_previsto ",
+        "SELECT concat(lpad(cast(row_number() OVER (ORDER BY estouro_previsto DESC) AS string), 2, '0'), ' ', projeto_id) AS ranking, ",
+        "projeto_id, cliente, estouro_previsto ",
         "FROM kpi_projeto ",
         "WHERE estouro_previsto > 0 ",
         "ORDER BY estouro_previsto DESC ",
@@ -248,8 +249,8 @@
                       "expression": "SUM(`estouro_previsto`)"
                     },
                     {
-                      "name": "projeto_id",
-                      "expression": "`projeto_id`"
+                      "name": "ranking",
+                      "expression": "`ranking`"
                     }
                   ],
                   "disaggregated": false
@@ -261,13 +262,10 @@
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "projeto_id",
-                  "displayName": "Projeto",
+                  "fieldName": "ranking",
+                  "displayName": "Projeto (posição no ranking)",
                   "scale": {
-                    "type": "categorical",
-                    "sort": {
-                      "by": "value"
-                    }
+                    "type": "categorical"
                   }
                 },
                 "y": {
@@ -515,7 +513,8 @@
                             "operator": "<"
                           },
                           "backgroundColor": {
-                            "hex": "#F4B6B6"
+                            "themeColorType": "visualizationColors",
+                            "position": 3
                           }
                         },
                         {
@@ -527,7 +526,8 @@
                             "operator": "<"
                           },
                           "backgroundColor": {
-                            "hex": "#F6E3A1"
+                            "themeColorType": "visualizationColors",
+                            "position": 6
                           }
                         }
                       ]
@@ -548,7 +548,8 @@
                             "operator": "<"
                           },
                           "backgroundColor": {
-                            "hex": "#F4B6B6"
+                            "themeColorType": "visualizationColors",
+                            "position": 3
                           }
                         },
                         {
@@ -560,7 +561,8 @@
                             "operator": "<"
                           },
                           "backgroundColor": {
-                            "hex": "#F6E3A1"
+                            "themeColorType": "visualizationColors",
+                            "position": 6
                           }
                         }
                       ]

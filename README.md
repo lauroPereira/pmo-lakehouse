@@ -172,7 +172,7 @@ Registro do que foi executado, em ordem.
 - **ANSI ligado no serverless:** `cast` inválido e divisão por zero geram erro em vez de nulo; a silver usa `try_cast`, `try_to_timestamp` e `try_divide`.
 - **Soma de `double` varia no último dígito entre execuções** (a ordem de soma muda): `gold.kpi_carteira` pode trazer `1.6100521125E8` ou `1.6100521125000003E8`. Comparações de regressão devem usar tolerância ou arredondar.
 - **Benchmark de Genie (modo Chat) compara resultados, não intenção:** SQL esperado com `round` ou conversão para milhões faz uma resposta correta ser marcada como falha. Guarde o valor bruto.
-- **Dashboard AI/BI:** `sort: value` ordena pela medida do eixo y (num gráfico horizontal, a medida está no x e a ordenação não acontece); e as cores por posição da paleta saíram deslocadas, por isso as regras de cor da tabela usam `hex`.
+- **Dashboard AI/BI:** o `sort` do eixo categórico foi aceito no JSON mas não aplicado, então o ranking de estouro leva a posição no rótulo (`01 PRJ-021`) e a ordem alfabética vira a ordem por valor. Nas regras de cor da tabela, `hex` também é aceito e ignorado; as posições da paleta funcionam, mas deslocadas uma posição (a posição 3 pinta a 3ª cor).
 - **`collect_list` não garante ordem**, mesmo depois de um `order by` na subconsulta; a avaliação monta textos com agregações explícitas.
 - **`pymongo[srv]`** não existe como extra na versão 4.10; basta `pymongo` (traz `dnspython`).
 
