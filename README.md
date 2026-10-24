@@ -58,6 +58,8 @@ O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita *
 | `resources/` | Job e dashboard do bundle (fase 6) |
 | `src/diagnostics/` | Utilitários fora do fluxo (teste de conectividade) |
 
+Cada etapa do pipeline tem, ao lado do notebook, um diagrama de sequência animado (`sequencia_*.html`, abre direto no navegador) que mostra a ordem das chamadas entre as funções, as tabelas e o checkpoint.
+
 ## Passo a passo da criação do projeto
 
 Registro do que foi executado, em ordem.

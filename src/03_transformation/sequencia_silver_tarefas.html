@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequência · silver_tarefas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<style>
+:root{--surface-1:#F1EFE8;--text-primary:#2C2C2A;--text-secondary:#5F5E5A;--border-strong:rgba(44,44,42,.3);--bg:#FFFFFF}
+@media (prefers-color-scheme: dark){:root{--surface-1:#2C2C2A;--text-primary:#F1EFE8;--text-secondary:#B4B2A9;--border-strong:rgba(241,239,232,.3);--bg:#1F1E1D}}
+body{margin:0;background:var(--bg);color:var(--text-primary);font-family:ui-sans-serif,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:24px auto;padding:0 16px}
+h1{font-size:18px;font-weight:500;margin:0 0 4px}p.sub{font-size:13px;color:var(--text-secondary);margin:0 0 16px}
+button{font:inherit;background:transparent;color:var(--text-primary);border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer}
+button:hover{background:var(--surface-1)}
+.ts{font-size:12px;fill:var(--text-secondary)}
+.c-gray>rect{fill:#F1EFE8;stroke:#5F5E5A}.c-gray>text{fill:#444441}
+.c-purple>rect{fill:#EEEDFE;stroke:#534AB7}.c-purple>text{fill:#3C3489}
+.c-teal>rect{fill:#E1F5EE;stroke:#0F6E56}.c-teal>text{fill:#085041}
+.c-coral>rect{fill:#FAECE7;stroke:#993C1D}.c-coral>text{fill:#712B13}
+@media (prefers-color-scheme: dark){
+.c-gray>rect{fill:#444441;stroke:#B4B2A9}.c-gray>text{fill:#F1EFE8}
+.c-purple>rect{fill:#3C3489;stroke:#AFA9EC}.c-purple>text{fill:#EEEDFE}
+.c-teal>rect{fill:#085041;stroke:#5DCAA5}.c-teal>text{fill:#E1F5EE}
+.c-coral>rect{fill:#712B13;stroke:#F0997B}.c-coral>text{fill:#FAECE7}}
+</style></head><body><main>
+<h1>Sequência · silver_tarefas</h1><p class="sub">Notebook src/03_transformation/silver_tarefas.py: três ferramentas declaradas, um modelo único de tarefas.</p>
+<style>
+.seq-btn{font-size:13px;padding:4px 10px}
+@media (prefers-reduced-motion: no-preference){#dot{transition:cx .9s ease-in-out,cy .9s ease-in-out}}
+</style>
+<div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;flex-wrap:wrap">
+  <button class="seq-btn" id="b-prev" aria-label="Passo anterior"><i class="ti ti-player-skip-back" aria-hidden="true"></i></button>
+  <button class="seq-btn" id="b-play"><i class="ti ti-player-pause" id="i-play" aria-hidden="true"></i> <span id="t-play">Pausar</span></button>
+  <button class="seq-btn" id="b-next" aria-label="Próximo passo"><i class="ti ti-player-skip-forward" aria-hidden="true"></i></button>
+  <button class="seq-btn" id="b-reset"><i class="ti ti-refresh" aria-hidden="true"></i> Recomeçar</button>
+  <span id="cnt" style="font-size:13px;color:var(--text-secondary);margin-left:auto"></span>
+</div>
+<div id="cap" style="font-size:14px;line-height:1.5;min-height:44px;padding:8px 12px;background:var(--surface-1);border-radius:8px;color:var(--text-primary)"></div>
+<svg width="100%" viewBox="0 0 680 546" role="img" id="sv">
+<title>Sequência · silver_tarefas</title><desc>Notebook src/03_transformation/silver_tarefas.py: três ferramentas declaradas, um modelo único de tarefas.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g id="heads"></g><g id="msgs"></g><circle id="dot" r="5" fill="#EF9F27" cx="-20" cy="-20"/>
+</svg>
+<script>
+const L=[["Notebook", "gray"], ["padronizar", "purple"], ["limpar", "purple"], ["integrar", "purple"], ["validar", "purple"], ["atributos", "purple"], ["Bronze", "coral"], ["Silver", "teal"]];
+const S=[[0, 1, "padronizar(ferramenta)", "Para cada Ferramenta declarada: Excel, ClickUp e MS Project.", 0], [1, 6, "versão vigente", "Lê a versão vigente dos documentos JSON da ferramenta na bronze.", 0], [1, 1, "SQL de padronização", "Wrangling do JSON e conversão de datas, % e horas para o formato comum.", 0], [1, 0, "df padronizado", "Devolve as tarefas da ferramenta no formato comum.", 1], [0, 2, "limpar(df, ferramenta)", "Etapa 4: aplica os descartes e os marcadores declarados para a ferramenta.", 0], [2, 7, "descartes → quarentena", "Linha TOTAL (Excel), tarefas-resumo (Project) e lista sem projeto (ClickUp) saem com o motivo.", 0], [2, 2, "conta marcadores", "Conta o que a padronização corrigiu: Q8, Q9, Q10 e Q12.", 0], [2, 0, "parte limpa", "Devolve a parte limpa; o laço repete para as três ferramentas.", 1], [0, 3, "integrar(partes)", "Etapa 5: empilha as três ferramentas e limita % acima de 100 (Q9).", 0], [3, 4, "validar(df)", "Etapa 6: integridade. O projeto existe? Datas, % e horas são válidos?", 0], [4, 7, "violações → quarentena", "Linha que viola alguma regra de integridade vai para a quarentena com o motivo.", 0], [4, 5, "calcular_atributos(df)", "Etapa 7: fração planejada até a data de corte, horas agregadas e planejadas, desvio e atraso.", 0], [5, 7, "gravar(): overwrite", "Etapa 8: sobrescreve silver.tarefas (4.917 tarefas).", 0], [0, 7, "append silver.qualidade", "Registro: uma linha por regra no histórico de qualidade.", 0]];
+const n=L.length,X=L.map((_,i)=>50+i*(580/(n-1))),BW=Math.min(88,580/(n-1)-6);
+const NS="http://www.w3.org/2000/svg",h=document.getElementById("heads"),m=document.getElementById("msgs");
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||m).appendChild(e);return e};
+const Y0=96,DY=30,YE=Y0+S.length*DY+10;
+L.forEach(([nm,c],i)=>{const g=el("g",{class:"c-"+c},h);el("rect",{x:X[i]-BW/2,y:30,width:BW,height:30,rx:4,"stroke-width":.5},g);
+const t=el("text",{class:"ts",x:X[i],y:45,"text-anchor":"middle","dominant-baseline":"central"},g);t.textContent=nm;
+el("line",{x1:X[i],y1:60,x2:X[i],y2:YE,stroke:"var(--border-strong)","stroke-width":.5,"stroke-dasharray":"3 3"},h)});
+const G=S.map((s,i)=>{const [a,b,lab,,ret]=s,y=Y0+i*DY,g=el("g",{opacity:0});let p;
+if(a===b){p=el("path",{d:`M${X[a]} ${y-6} h34 v14 h-30`,fill:"none","stroke-width":1.2,"marker-end":"url(#arrow)"},g)}
+else{const d=b>a?-6:6;p=el("line",{x1:X[a],y1:y,x2:X[b]+d,y2:y,"stroke-width":1.2,"marker-end":"url(#arrow)"},g);if(ret)p.setAttribute("stroke-dasharray","4 3")}
+const self=a===b,right=self&&X[a]>480,lx=self?(right?X[a]-8:X[a]+40):(X[a]+X[b])/2;
+const t=el("text",{class:"ts",x:lx,y:y-7,"text-anchor":self?(right?"end":"start"):"middle"},g);t.textContent=lab;return{g,p,y,a,b}});
+let k=0,play=true,tm;const cap=document.getElementById("cap"),cnt=document.getElementById("cnt"),dot=document.getElementById("dot");
+function draw(){G.forEach((o,i)=>{o.g.setAttribute("opacity",i<k?.35:i===k?1:0);o.p.setAttribute("stroke",i===k?"#1D9E75":"var(--text-secondary)")});
+const o=G[k];cap.textContent=S[k][3];cnt.textContent=`Passo ${k+1} de ${S.length}`;
+dot.style.transition="none";dot.setAttribute("cx",X[o.a]);dot.setAttribute("cy",o.y);dot.getBoundingClientRect();dot.style.transition="";
+requestAnimationFrame(()=>{dot.setAttribute("cx",o.a===o.b?X[o.a]+30:X[o.b]);dot.setAttribute("cy",o.a===o.b?o.y+8:o.y)})}
+function go(x){k=(x+S.length)%S.length;draw()}
+function tick(){clearTimeout(tm);if(play)tm=setTimeout(()=>{go(k+1);tick()},k===S.length-1?3500:2600)}
+document.getElementById("b-next").onclick=()=>{go(k+1);tick()};
+document.getElementById("b-prev").onclick=()=>{go(k-1);tick()};
+document.getElementById("b-reset").onclick=()=>{go(0);tick()};
+document.getElementById("b-play").onclick=()=>{play=!play;document.getElementById("t-play").textContent=play?"Pausar":"Continuar";document.getElementById("i-play").className="ti "+(play?"ti-player-pause":"ti-player-play");tick()};
+go(0);tick();
+</script>
+</main></body></html>
