@@ -136,6 +136,68 @@ spark.sql(f"""
     from {G}.kpi_projeto
 """)
 
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Glossário no Unity Catalog
+# MAGIC
+# MAGIC Cada coluna publicada recebe a sua definição como comentário. O dashboard, o Genie e quem consulta a gold leem o
+# MAGIC mesmo glossário, mantido num lugar só.
+
+# COMMAND ----------
+
+COMENTARIOS = {
+    "kpi_projeto": {
+        "projeto_id": "Identificador do projeto (PRJ-xxx)",
+        "cliente": "Cliente do projeto",
+        "segmento": "Segmento do cliente: varejo, financeiro, saude, logistica, industria",
+        "ferramenta": "Ferramenta de cronograma do gerente: excel, clickup, msproject",
+        "gerente": "Gerente do projeto",
+        "data_corte": "Data de corte: último status semanal; os índices valem para esta data",
+        "tarefas": "Quantidade de tarefas do cronograma",
+        "tarefas_atrasadas": "Tarefas com % concluído abaixo do % planejado na data de corte",
+        "bac": "BAC (Budget at Completion): orçamento de custo do projeto, em R$",
+        "pv": "PV (Planned Value, valor planejado): parte do orçamento que deveria estar entregue na data de corte, em R$",
+        "ev": "EV (Earned Value, valor agregado): parte do orçamento efetivamente entregue, em R$",
+        "ac": "AC (Actual Cost, custo real): soma dos custos lançados no projeto, estornos inclusos, em R$",
+        "pct_concluido_calculado": "% concluído calculado pelas horas das tarefas (0 a 100)",
+        "pct_planejado": "% que deveria estar concluído na data de corte, pelo baseline (0 a 100)",
+        "farol_declarado": "Farol informado pelo gerente no status semanal: verde, amarelo ou vermelho",
+        "pct_concluido_declarado": "% concluído informado pelo gerente no status semanal",
+        "spi": "SPI (Schedule Performance Index, índice de desempenho de prazo) = EV / PV; abaixo de 1 é atraso",
+        "cpi": "CPI (Cost Performance Index, índice de desempenho de custo) = EV / AC; abaixo de 1 é custo acima do previsto",
+        "sv": "SV (Schedule Variance, variação de prazo) = EV - PV, em R$",
+        "cv": "CV (Cost Variance, variação de custo) = EV - AC, em R$",
+        "eac": "EAC (Estimate at Completion, estimativa no término) = BAC / CPI: custo final previsto, em R$",
+        "etc": "ETC (Estimate to Complete, estimativa para terminar) = EAC - AC: quanto ainda falta gastar, em R$",
+        "vac": "VAC (Variance at Completion, variação no término) = BAC - EAC; negativo é estouro, em R$",
+        "estouro_previsto": "Estouro previsto = max(0, EAC - BAC): quanto o projeto vai custar além do orçamento, em R$",
+        "situacao": f"crítico se SPI ou CPI < {CRITICO}; atenção se < {ATENCAO}; senão ok",
+        "farol_calculado": f"Farol pelo SPI: verde >= {ATENCAO}, amarelo >= {CRITICO}, vermelho abaixo",
+        "melancia": "Verdadeiro quando o farol declarado é verde mas o farol calculado não é (verde por fora, atrasado por dentro)",
+    },
+    "kpi_carteira": {
+        "data_corte": "Data de corte: último status semanal",
+        "projetos_em_andamento": "Projetos em andamento na data de corte",
+        "orcamento_total": "Soma do BAC (orçamento) dos projetos em andamento, em R$",
+        "custo_real_total": "Soma do AC (custo real) dos projetos em andamento, em R$",
+        "estouro_previsto_total": "Soma do estouro previsto (EAC - BAC) dos projetos que estouram, em R$",
+        "projetos_criticos": f"Projetos com SPI ou CPI abaixo de {CRITICO}",
+        "projetos_em_atencao": f"Projetos com SPI ou CPI abaixo de {ATENCAO}, sem ser críticos",
+        "projetos_melancia": "Projetos com farol declarado verde e farol calculado diferente de verde",
+        "maior_estouro_projeto": "Projeto com o maior estouro previsto",
+        "maior_estouro_valor": "Valor do maior estouro previsto, em R$",
+    },
+}
+
+for tabela, colunas in COMENTARIOS.items():
+    for coluna, texto in colunas.items():
+        texto = texto.replace("'", "\\'")
+        spark.sql(f"alter table {G}.{tabela} alter column {coluna} comment '{texto}'")
+    print(f"{tabela}: {len(colunas)} colunas comentadas")
+
+# COMMAND ----------
+
 spark.sql(f"""select projeto_id, round(spi, 2) spi, round(cpi, 2) cpi, round(estouro_previsto / 1e6, 2) estouro_mi,
                      situacao, farol_declarado, farol_calculado, melancia
               from {G}.kpi_projeto order by spi limit 8""").show(truncate=False)

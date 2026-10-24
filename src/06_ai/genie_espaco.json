@@ -1,0 +1,451 @@
+{
+  "version": 2,
+  "config": {
+    "sample_questions": [
+      {
+        "id": "31c7c3402a7a60a79d03c7a02fa852d2",
+        "question": [
+          "Quais projetos estão atrasados e de quais clientes?"
+        ]
+      },
+      {
+        "id": "3f13ad00f860e7abfdb39a973b6e8593",
+        "question": [
+          "Quanto o atraso vai custar para a empresa?"
+        ]
+      },
+      {
+        "id": "75ff2ab1420074cc6c70bd45ca296055",
+        "question": [
+          "O que é SPI?"
+        ]
+      },
+      {
+        "id": "820674353910529b9d1ed23e8da52564",
+        "question": [
+          "Em quais projetos o farol do gerente não bate com a realidade?"
+        ]
+      }
+    ]
+  },
+  "data_sources": {
+    "tables": [
+      {
+        "identifier": "workspace.gold.kpi_carteira"
+      },
+      {
+        "identifier": "workspace.gold.kpi_projeto",
+        "column_configs": [
+          {
+            "column_name": "ac",
+            "description": [
+              "Custo real lançado até a data de corte (AC), em R$"
+            ],
+            "synonyms": [
+              "custo real",
+              "gasto"
+            ]
+          },
+          {
+            "column_name": "bac",
+            "description": [
+              "Orçamento de custo do projeto (BAC), em R$"
+            ],
+            "synonyms": [
+              "orçamento"
+            ]
+          },
+          {
+            "column_name": "cliente",
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "cpi",
+            "description": [
+              "Índice de custo CPI = EV / AC; abaixo de 1 é custo acima do previsto"
+            ],
+            "synonyms": [
+              "índice de custo",
+              "desempenho de custo"
+            ]
+          },
+          {
+            "column_name": "cv",
+            "exclude": true
+          },
+          {
+            "column_name": "eac",
+            "description": [
+              "Custo final previsto (EAC = BAC / CPI), em R$"
+            ],
+            "synonyms": [
+              "custo final previsto",
+              "estimativa no término"
+            ]
+          },
+          {
+            "column_name": "estouro_previsto",
+            "description": [
+              "Quanto o projeto vai custar além do orçamento, em R$ (0 se não estoura)"
+            ],
+            "synonyms": [
+              "estouro",
+              "custo do atraso",
+              "prejuízo previsto"
+            ]
+          },
+          {
+            "column_name": "etc",
+            "exclude": true
+          },
+          {
+            "column_name": "farol_calculado",
+            "description": [
+              "Cor pelo SPI: verde >= 0,9, amarelo >= 0,8, vermelho abaixo"
+            ],
+            "synonyms": [
+              "farol real"
+            ],
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "farol_declarado",
+            "description": [
+              "Cor informada pelo gerente no status semanal"
+            ],
+            "synonyms": [
+              "farol do gerente",
+              "status reportado"
+            ],
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "ferramenta",
+            "synonyms": [
+              "ferramenta de cronograma"
+            ],
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "gerente",
+            "synonyms": [
+              "gerente de projeto"
+            ],
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "melancia",
+            "description": [
+              "Farol declarado verde, mas o farol calculado não é verde"
+            ],
+            "synonyms": [
+              "farol mentiroso",
+              "verde por fora"
+            ]
+          },
+          {
+            "column_name": "pct_concluido_declarado",
+            "exclude": true
+          },
+          {
+            "column_name": "segmento",
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "situacao",
+            "description": [
+              "crítico se SPI ou CPI < 0,8; atenção se < 0,9; senão ok"
+            ],
+            "synonyms": [
+              "status",
+              "saúde do projeto"
+            ],
+            "enable_format_assistance": true,
+            "enable_entity_matching": true
+          },
+          {
+            "column_name": "spi",
+            "description": [
+              "Índice de prazo SPI = EV / PV; abaixo de 1 é atraso"
+            ],
+            "synonyms": [
+              "índice de prazo",
+              "desempenho de prazo"
+            ]
+          },
+          {
+            "column_name": "sv",
+            "exclude": true
+          },
+          {
+            "column_name": "tarefas",
+            "exclude": true
+          },
+          {
+            "column_name": "vac",
+            "exclude": true
+          }
+        ]
+      }
+    ]
+  },
+  "instructions": {
+    "text_instructions": [
+      {
+        "id": "5c32917a77a14cff49921093951111cb",
+        "content": [
+          "## PURPOSE\n- Saúde da entrega dos projetos em andamento da Vértice Tecnologia (cenário simulado) na data de corte, o último status semanal.\n- Público: diretoria e PMO. Responda em português do Brasil.\n\n## DISAMBIGUATION\n- \"Atrasado\" sem outro critério significa SPI abaixo de 0,9.\n- \"Crítico\" e \"em atenção\" seguem a coluna situacao.\n- Para SPI ou CPI de um grupo de projetos (carteira, segmento, ferramenta, gerente, cliente), use o índice agregado (soma do EV dividida pela soma do PV ou do AC), nunca a média dos índices.\n- Glossário, para quando perguntarem o significado de uma sigla:\n- BAC: orçamento do projeto. PV: valor planejado até a data de corte. EV: valor agregado, o que foi entregue. AC: custo real.\n- SPI = EV / PV, índice de prazo; abaixo de 1 é atraso. CPI = EV / AC, índice de custo; abaixo de 1 é custo acima do previsto.\n- EAC = BAC / CPI, custo final previsto. Estouro previsto = EAC - BAC, quando positivo.\n- Melancia: projeto com farol declarado verde e farol calculado diferente de verde.\n\n## Instructions you must follow when providing summaries\n- Valores em R$ com duas casas decimais, em milhões acima de R$ 1 milhão.\n- Índices (SPI, CPI) com duas casas decimais.\n- Cite a data de corte ao falar de números da carteira."
+        ]
+      }
+    ],
+    "example_question_sqls": [
+      {
+        "id": "23a9c650ed0966bed13ffe6c02bce687",
+        "question": [
+          "Em quais projetos o farol do gerente difere do farol calculado?"
+        ],
+        "sql": [
+          "SELECT projeto_id, cliente, farol_declarado, farol_calculado, spi FROM workspace.gold.kpi_projeto WHERE farol_declarado <> farol_calculado ORDER BY spi"
+        ]
+      },
+      {
+        "id": "2ff87d874e4b33270462c85befe61beb",
+        "question": [
+          "Qual o SPI agregado por gerente?"
+        ],
+        "sql": [
+          "SELECT gerente, sum(ev) / sum(pv) AS spi_agregado FROM workspace.gold.kpi_projeto GROUP BY gerente ORDER BY spi_agregado"
+        ]
+      },
+      {
+        "id": "bdefeabab4142aeee7ec31a55e4cafe2",
+        "question": [
+          "Quais os 3 projetos de varejo com maior estouro previsto?"
+        ],
+        "sql": [
+          "SELECT projeto_id, cliente, estouro_previsto FROM workspace.gold.kpi_projeto WHERE segmento = 'varejo' ORDER BY estouro_previsto DESC LIMIT 3"
+        ]
+      }
+    ],
+    "sql_snippets": {
+      "measures": [
+        {
+          "id": "a11c8ec86679ecd86222d6633649edca",
+          "alias": "cpi_agregado",
+          "display_name": "CPI agregado",
+          "sql": [
+            "sum(kpi_projeto.ev) / sum(kpi_projeto.ac)"
+          ],
+          "synonyms": [
+            "CPI da carteira",
+            "CPI do grupo"
+          ]
+        },
+        {
+          "id": "b3a9e643613cc7753930aafd4d9a73bd",
+          "alias": "spi_agregado",
+          "display_name": "SPI agregado",
+          "sql": [
+            "sum(kpi_projeto.ev) / sum(kpi_projeto.pv)"
+          ],
+          "synonyms": [
+            "SPI da carteira",
+            "SPI do grupo"
+          ]
+        }
+      ],
+      "filters": [
+        {
+          "id": "84d531a874cf53afd3adccfeb24a474c",
+          "display_name": "Projeto atrasado",
+          "sql": [
+            "kpi_projeto.spi < 0.9"
+          ],
+          "synonyms": [
+            "atrasado",
+            "atrasados",
+            "fora do prazo"
+          ]
+        }
+      ]
+    }
+  },
+  "benchmarks": {
+    "questions": [
+      {
+        "id": "1034892f9a57121299aead8b035d1aaf",
+        "question": [
+          "Quantos projetos estão em situação crítica e quantos em atenção?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT situacao, count(*) AS projetos FROM workspace.gold.kpi_projeto WHERE situacao IN ('crítico', 'atenção') GROUP BY situacao"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1093eb0a4f3abf24093762b0b8b5b877",
+        "question": [
+          "Qual o estouro previsto por segmento?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT segmento, round(sum(estouro_previsto) / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_projeto GROUP BY segmento ORDER BY 2 DESC"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1dcf9d386a331a9e1c0484082f05ed53",
+        "question": [
+          "Qual o SPI e o CPI da carteira?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT round(sum(ev) / sum(pv), 2) AS spi, round(sum(ev) / sum(ac), 2) AS cpi FROM workspace.gold.kpi_projeto"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "6b106ee457b4484f975f550ac653c151",
+        "question": [
+          "Quantos projetos estão atrasados?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT count(*) AS projetos_atrasados FROM workspace.gold.kpi_projeto WHERE spi < 0.9"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "748436e35b5c924c35d8f9b91b4a8884",
+        "question": [
+          "Qual projeto tem o maior estouro previsto?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT projeto_id, round(estouro_previsto / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_projeto ORDER BY estouro_previsto DESC LIMIT 1"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "aab59274493bdb6d42c5639eb744f133",
+        "question": [
+          "Qual o CPI do PRJ-009?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT round(cpi, 2) AS cpi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-009'"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "b16c0848d9534f059eb8635758fad12f",
+        "question": [
+          "Qual o SPI da carteira por ferramenta?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT ferramenta, round(sum(ev) / sum(pv), 2) AS spi FROM workspace.gold.kpi_projeto GROUP BY ferramenta ORDER BY ferramenta"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "b293b69238e7dd36b58371d8e919a46e",
+        "question": [
+          "Quais projetos estão com farol verde mas atrasados?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT projeto_id FROM workspace.gold.kpi_projeto WHERE melancia ORDER BY projeto_id"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "c96a82528980c5054a32bf574da11e0d",
+        "question": [
+          "Qual o estouro previsto da carteira?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT round(estouro_previsto_total / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_carteira"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "d158a7fc3eca735a6c37fab3aefde07d",
+        "question": [
+          "Qual o SPI do PRJ-011?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT round(spi, 2) AS spi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-011'"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "eba126bb7461e39546187b3ba4bd587a",
+        "question": [
+          "Quais clientes têm projetos críticos?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT DISTINCT cliente FROM workspace.gold.kpi_projeto WHERE situacao = 'crítico' ORDER BY cliente"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "f9554fab956736f831dce421d5f54aa9",
+        "question": [
+          "Quais os 5 projetos com pior SPI?"
+        ],
+        "answer": [
+          {
+            "format": "SQL",
+            "content": [
+              "SELECT projeto_id, round(spi, 2) AS spi FROM workspace.gold.kpi_projeto ORDER BY spi LIMIT 5"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
