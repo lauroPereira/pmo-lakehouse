@@ -6,6 +6,8 @@ material_imersao/
 # ambiente local e ferramentas
 .databricks/
 .claude/
+.agents/
+*.bak
 .qodo/
 .vscode/
 .venv/
