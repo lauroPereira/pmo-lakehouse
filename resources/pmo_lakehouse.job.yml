@@ -17,39 +17,39 @@ resources:
         - task_key: extracao
           description: Snapshot completo do Postgres e do MongoDB na landing (Parquet).
           notebook_task:
-            notebook_path: ../src/extraction/extrair_para_landing.py
+            notebook_path: ../src/01_extraction/extrair_para_landing.py
 
         - task_key: bronze
           description: Landing -> bronze com Auto Loader e MERGE por hash.
           depends_on:
             - task_key: extracao
           notebook_task:
-            notebook_path: ../src/ingestion/ingestao_bronze.py
+            notebook_path: ../src/02_ingestion/ingestao_bronze.py
 
         - task_key: silver_cadastros
           description: Projetos, status semanal e custos limpos e tipados, com quarentena.
           depends_on:
             - task_key: bronze
           notebook_task:
-            notebook_path: ../src/transformation/silver_cadastros.py
+            notebook_path: ../src/03_transformation/silver_cadastros.py
 
         - task_key: silver_tarefas
           description: Modelo único de tarefas das 3 ferramentas e atributos para o valor agregado.
           depends_on:
             - task_key: silver_cadastros
           notebook_task:
-            notebook_path: ../src/transformation/silver_tarefas.py
+            notebook_path: ../src/03_transformation/silver_tarefas.py
 
         - task_key: gold
           description: Valor agregado (SPI, CPI, EAC, estouro) e farol calculado.
           depends_on:
             - task_key: silver_tarefas
           notebook_task:
-            notebook_path: ../src/modeling/gold_kpis.py
+            notebook_path: ../src/04_modeling/gold_kpis.py
 
         - task_key: avaliacao
           description: Esperado × encontrado; falha o job se algum item divergir.
           depends_on:
             - task_key: gold
           notebook_task:
-            notebook_path: ../src/evaluation/avaliacao.py
+            notebook_path: ../src/05_evaluation/avaliacao.py

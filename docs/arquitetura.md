@@ -20,10 +20,10 @@ Colunas, tipos e relacionamentos de cada camada: [docs/modelo-de-dados.md](https
 
 | Camada | Onde | Conteúdo | Código |
 |---|---|---|---|
-| landing | Volume `workspace.raw.landing` | snapshot completo de cada origem em Parquet imutável (`dt_raw`, `lote`), com `_hash` e `_chave` | `src/extraction/` (PySpark: JDBC + pymongo) |
-| bronze | `workspace.bronze` | Auto Loader sobre a landing; `MERGE` só de inserção por `_hash`; `_arquivo` de origem em cada linha; controles de extração e carga | `src/ingestion/` (PySpark) |
-| silver | `workspace.silver` | `projetos`, `status_semanal`, `custos` e `tarefas` (modelo único das 3 ferramentas, com atributos por tarefa); regras Q1–Q13 registradas em `qualidade`; descartes e quarentena com motivo em `quarentena` | `src/transformation/` (PySpark) |
-| gold | `workspace.gold` | `kpi_projeto` e `kpi_carteira`: valor agregado (SPI, CPI, EAC, estouro) e farol declarado × calculado, cada KPI definido uma vez; `avaliacao` com o histórico esperado × encontrado | `src/modeling/`, `src/evaluation/` (SQL em notebooks PySpark) |
+| landing | Volume `workspace.raw.landing` | snapshot completo de cada origem em Parquet imutável (`dt_raw`, `lote`), com `_hash` e `_chave` | `src/01_extraction/` (PySpark: JDBC + pymongo) |
+| bronze | `workspace.bronze` | Auto Loader sobre a landing; `MERGE` só de inserção por `_hash`; `_arquivo` de origem em cada linha; controles de extração e carga | `src/02_ingestion/` (PySpark) |
+| silver | `workspace.silver` | `projetos`, `status_semanal`, `custos` e `tarefas` (modelo único das 3 ferramentas, com atributos por tarefa); regras Q1–Q13 registradas em `qualidade`; descartes e quarentena com motivo em `quarentena` | `src/03_transformation/` (PySpark) |
+| gold | `workspace.gold` | `kpi_projeto` e `kpi_carteira`: valor agregado (SPI, CPI, EAC, estouro) e farol declarado × calculado, cada KPI definido uma vez; `avaliacao` com o histórico esperado × encontrado | `src/04_modeling/`, `src/05_evaluation/` (SQL em notebooks PySpark) |
 | consumo | dashboard AI/BI | indicadores de D1–D3 sobre a gold | `src/serving/` + `resources/` |
 | ia | Genie | espaço Genie sobre a gold e um conjunto de perguntas com resposta esperada | a fazer |
 

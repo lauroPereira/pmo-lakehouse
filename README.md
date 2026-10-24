@@ -16,9 +16,9 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 |---|---|---|
 | 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
 | 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
-| 3. Preparação dos dados | Landing e bronze; silver [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_cadastros.py) e [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_tarefas.py): limpeza, tipos, wrangling, integração das 3 ferramentas e atributos por tarefa, com quarentena e registro de qualidade | Feito |
-| 4. Modelagem | [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/modeling/gold_kpis.py): valor agregado (SPI, CPI, EAC, estouro) e farol calculado, por projeto e carteira | Feito |
-| 5. Avaliação | [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py): 15 itens esperado × encontrado a cada execução (15 de 15); perguntas de avaliação do Genie a fazer | Em andamento |
+| 3. Preparação dos dados | Landing e bronze; silver [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_cadastros.py) e [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_tarefas.py): limpeza, tipos, wrangling, integração das 3 ferramentas e atributos por tarefa, com quarentena e registro de qualidade | Feito |
+| 4. Modelagem | [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/04_modeling/gold_kpis.py): valor agregado (SPI, CPI, EAC, estouro) e farol calculado, por projeto e carteira | Feito |
+| 5. Avaliação | [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/05_evaluation/avaliacao.py): 15 itens esperado × encontrado a cada execução (15 de 15); perguntas de avaliação do Genie a fazer | Em andamento |
 | 6. Implantação | Job [`pmo_lakehouse`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) e dashboard [`saude_da_entrega`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/serving/saude_da_entrega.lvdash.json) no bundle (feitos); assistente em linguagem natural (Genie) a fazer | Em andamento |
 
 ### Registro de iterações
@@ -49,11 +49,11 @@ O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita *
 |---|---|
 | `src/understanding/` | Fases 1 e 2 do CRISP-DM: entendimento do negócio e dos dados |
 | `src/sources/` | Simula os sistemas de origem (não faz parte do pipeline) |
-| `src/extraction/` | Origem → landing (Parquet) |
-| `src/ingestion/` | Landing → bronze (Auto Loader) |
-| `src/transformation/` | Bronze → silver (fase 3: preparação dos dados) |
-| `src/modeling/` | Silver → gold (fase 4: modelo de valor agregado) |
-| `src/evaluation/` | Esperado × encontrado (fase 5) |
+| `src/01_extraction/` | Origem → landing (Parquet) |
+| `src/02_ingestion/` | Landing → bronze (Auto Loader) |
+| `src/03_transformation/` | Bronze → silver (fase 3: preparação dos dados) |
+| `src/04_modeling/` | Silver → gold (fase 4: modelo de valor agregado) |
+| `src/05_evaluation/` | Esperado × encontrado (fase 5) |
 | `src/serving/` | Dashboard AI/BI sobre a gold (fase 6) |
 | `resources/` | Job e dashboard do bundle (fase 6) |
 | `src/diagnostics/` | Utilitários fora do fluxo (teste de conectividade) |
@@ -119,12 +119,12 @@ Registro do que foi executado, em ordem.
 
    Conferência: as contagens do Postgres batem com as linhas dos CSVs (sem o cabeçalho). Todas as colunas do Postgres são `text` de propósito (sistema legado sem tipos), e cada documento do Mongo leva `_arquivo` e `_carregado_em` para rastreio. Para ver as tabelas no painel do Supabase, troque o seletor de schema (padrão `public`) para `pmo`, `rh`, `financeiro`, `timesheet` ou `compras`. Escolha de desenho: ClickUp, MS Project e Excel ficam juntos no Mongo porque são as três "ferramentas de gerente" do caso, cada uma com um modelo diferente.
 
-8. **Landing zone** ([`src/extraction/extrair_para_landing.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/extraction/extrair_para_landing.py)): lê cada origem **por inteiro** e grava um **snapshot completo** em Parquet no Volume `workspace.raw.landing`, em `<fonte>/<tabela>/dt_raw=AAAA-MM-DD/lote_<id>/`. Cada execução é uma fotografia da origem naquele momento, mesmo quando nada mudou; os arquivos são imutáveis.
+8. **Landing zone** ([`src/01_extraction/extrair_para_landing.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/01_extraction/extrair_para_landing.py)): lê cada origem **por inteiro** e grava um **snapshot completo** em Parquet no Volume `workspace.raw.landing`, em `<fonte>/<tabela>/dt_raw=AAAA-MM-DD/lote_<id>/`. Cada execução é uma fotografia da origem naquele momento, mesmo quando nada mudou; os arquivos são imutáveis.
    - Postgres via JDBC e Mongo via pymongo (o conector Spark do Mongo não está disponível no serverless).
    - Cada linha leva `_hash` (SHA-256 do conteúdo; no Mongo, do documento sem `_id` e `_carregado_em`, que mudam a cada recarga), `_chave` (chave natural), `_extraido_em` e `_lote_id`.
    - `bronze._controle_extracao` compara linhas lidas na origem × linhas gravadas na landing.
    - **Por que snapshot completo:** a landing vira uma cópia auditável e reprocessável, sem depender de marca d'água; exclusões na origem passam a ser detectáveis comparando as chaves de dois snapshots. O custo é armazenamento (cada snapshot repete a origem, poucos MB aqui); para tabelas grandes eu voltaria ao incremental ou CDC.
-9. **Bronze** ([`src/ingestion/ingestao_bronze.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
+9. **Bronze** ([`src/02_ingestion/ingestao_bronze.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/02_ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
    - Cada linha leva `_arquivo` (o Parquet que a originou), `dt_raw`, `_origem`, `_carregado_em`, `_hash`, `_chave`, `_extraido_em` e `_lote_id`.
    - **Idempotência em dois níveis:** por arquivo (checkpoint do Auto Loader) e por conteúdo (`MERGE` só de inserção por `_hash`). Ler um snapshot repetido não duplica nada; linha alterada entra como nova versão, com histórico. A silver escolhe a versão vigente por `_chave`.
    - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md), reproduzíveis na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
@@ -142,11 +142,11 @@ Registro do que foi executado, em ordem.
    Depois da simulação, landing, bronze e checkpoints foram apagados e refeitos com as origens restauradas, para não deixar linhas simuladas.
 
 10. **Silver** (fase 3 do CRISP-DM), recalculada a cada execução a partir da versão vigente da bronze:
-    - [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_cadastros.py): `silver.projetos` (ferramenta normalizada, datas nos 2 formatos), `silver.status_semanal` (farol normalizado e validado) e `silver.custos` (vírgula decimal corrigida, estorno sinalizado).
-    - [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/transformation/silver_tarefas.py): `silver.tarefas`, o modelo único das 3 ferramentas (4.917 tarefas). Limpeza (TOTAL e tarefas-resumo descartadas), padronização de tipos (datas, % e horas em vários formatos), wrangling (JSON aberto; a fase do MS Project herdada da tarefa-resumo), integração (ClickUp ligado ao cadastro pelo código ou pelo nome) e atributos por tarefa (fração planejada, horas agregadas e planejadas, desvio, atraso).
+    - [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_cadastros.py): `silver.projetos` (ferramenta normalizada, datas nos 2 formatos), `silver.status_semanal` (farol normalizado e validado) e `silver.custos` (vírgula decimal corrigida, estorno sinalizado).
+    - [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_tarefas.py): `silver.tarefas`, o modelo único das 3 ferramentas (4.917 tarefas). Limpeza (TOTAL e tarefas-resumo descartadas), padronização de tipos (datas, % e horas em vários formatos), wrangling (JSON aberto; a fase do MS Project herdada da tarefa-resumo), integração (ClickUp ligado ao cadastro pelo código ou pelo nome) e atributos por tarefa (fração planejada, horas agregadas e planejadas, desvio, atraso).
     - Qualidade: cada regra Q1–Q13 grava quantas linhas corrigiu, sinalizou, descartou ou pôs em quarentena em `silver.qualidade`; o que foi descartado ou ficou em quarentena vai para `silver.quarentena` com o motivo e o registro original.
-11. **Gold** (fase 4): [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/modeling/gold_kpis.py) cria `gold.kpi_projeto` (BAC, PV, EV, AC, SPI, CPI, EAC, VAC, estouro, situação, farol declarado × calculado, melancia) e `gold.kpi_carteira`.
-12. **Avaliação** (fase 5): [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/evaluation/avaliacao.py) confere 15 itens (D1, D2, D3 e o requisito de qualidade) contra os valores de referência, grava `gold.avaliacao` e falha o job se algum divergir.
+11. **Gold** (fase 4): [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/04_modeling/gold_kpis.py) cria `gold.kpi_projeto` (BAC, PV, EV, AC, SPI, CPI, EAC, VAC, estouro, situação, farol declarado × calculado, melancia) e `gold.kpi_carteira`.
+12. **Avaliação** (fase 5): [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/05_evaluation/avaliacao.py) confere 15 itens (D1, D2, D3 e o requisito de qualidade) contra os valores de referência, grava `gold.avaliacao` e falha o job se algum divergir.
 13. **Job** (fase 6): [`resources/pmo_lakehouse.job.yml`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/pmo_lakehouse.job.yml) encadeia extração → bronze → silver_cadastros → silver_tarefas → gold → avaliação, no serverless, agendado para dias úteis às 6h (pausado no alvo `dev`).
 
 14. **Dashboard** (fase 6): [`saude_da_entrega.lvdash.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/serving/saude_da_entrega.lvdash.json), implantado pelo bundle ([`resources/saude_da_entrega.dashboard.yml`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/resources/saude_da_entrega.dashboard.yml)) no SQL warehouse serverless. Quatro indicadores (projetos em andamento, críticos, estouro previsto e melancias), os 10 maiores estouros (D2), situação calculada × farol do gerente (D3) e a tabela de projetos com SPI e CPI coloridos (D1).
