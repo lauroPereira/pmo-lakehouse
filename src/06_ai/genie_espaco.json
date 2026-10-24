@@ -287,7 +287,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT situacao, count(*) AS projetos FROM workspace.gold.kpi_projeto WHERE situacao IN ('crítico', 'atenção') GROUP BY situacao"
+              "SELECT count_if(situacao = 'crítico') AS projetos_criticos, count_if(situacao = 'atenção') AS projetos_em_atencao FROM workspace.gold.kpi_projeto"
             ]
           }
         ]
@@ -301,7 +301,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT segmento, round(sum(estouro_previsto) / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_projeto GROUP BY segmento ORDER BY 2 DESC"
+              "SELECT segmento, sum(estouro_previsto) AS estouro_previsto FROM workspace.gold.kpi_projeto GROUP BY segmento ORDER BY 2 DESC"
             ]
           }
         ]
@@ -315,7 +315,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT round(sum(ev) / sum(pv), 2) AS spi, round(sum(ev) / sum(ac), 2) AS cpi FROM workspace.gold.kpi_projeto"
+              "SELECT sum(ev) / sum(pv) AS spi_agregado, sum(ev) / sum(ac) AS cpi_agregado FROM workspace.gold.kpi_projeto"
             ]
           }
         ]
@@ -343,7 +343,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT projeto_id, round(estouro_previsto / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_projeto ORDER BY estouro_previsto DESC LIMIT 1"
+              "SELECT projeto_id, estouro_previsto FROM workspace.gold.kpi_projeto ORDER BY estouro_previsto DESC LIMIT 1"
             ]
           }
         ]
@@ -357,7 +357,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT round(cpi, 2) AS cpi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-009'"
+              "SELECT cpi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-009'"
             ]
           }
         ]
@@ -371,7 +371,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT ferramenta, round(sum(ev) / sum(pv), 2) AS spi FROM workspace.gold.kpi_projeto GROUP BY ferramenta ORDER BY ferramenta"
+              "SELECT ferramenta, sum(ev) / sum(pv) AS spi_agregado FROM workspace.gold.kpi_projeto GROUP BY ferramenta ORDER BY ferramenta"
             ]
           }
         ]
@@ -399,7 +399,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT round(estouro_previsto_total / 1e6, 2) AS estouro_milhoes FROM workspace.gold.kpi_carteira"
+              "SELECT estouro_previsto_total FROM workspace.gold.kpi_carteira"
             ]
           }
         ]
@@ -413,7 +413,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT round(spi, 2) AS spi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-011'"
+              "SELECT spi FROM workspace.gold.kpi_projeto WHERE projeto_id = 'PRJ-011'"
             ]
           }
         ]
@@ -441,7 +441,7 @@
           {
             "format": "SQL",
             "content": [
-              "SELECT projeto_id, round(spi, 2) AS spi FROM workspace.gold.kpi_projeto ORDER BY spi LIMIT 5"
+              "SELECT projeto_id, spi FROM workspace.gold.kpi_projeto ORDER BY spi LIMIT 5"
             ]
           }
         ]

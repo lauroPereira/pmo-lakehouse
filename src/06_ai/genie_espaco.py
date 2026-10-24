@@ -105,26 +105,27 @@ PERGUNTAS_EXEMPLO = [
 
 # ---------------------------------------------------------------- benchmarks (respostas validadas na gold)
 BENCHMARKS = [
+    # Valores brutos, sem round nem conversão para milhões: o avaliador (modo Chat) compara conjuntos de resultados.
     ("B1", "Quantos projetos estão atrasados?", f"SELECT count(*) AS projetos_atrasados FROM {KPI} WHERE spi < 0.9"),
-    ("B2", "Quais os 5 projetos com pior SPI?", f"SELECT projeto_id, round(spi, 2) AS spi FROM {KPI} ORDER BY spi LIMIT 5"),
-    ("B3", "Qual o SPI do PRJ-011?", f"SELECT round(spi, 2) AS spi FROM {KPI} WHERE projeto_id = 'PRJ-011'"),
+    ("B2", "Quais os 5 projetos com pior SPI?", f"SELECT projeto_id, spi FROM {KPI} ORDER BY spi LIMIT 5"),
+    ("B3", "Qual o SPI do PRJ-011?", f"SELECT spi FROM {KPI} WHERE projeto_id = 'PRJ-011'"),
     ("B4", "Quantos projetos estão em situação crítica e quantos em atenção?",
-     f"SELECT situacao, count(*) AS projetos FROM {KPI} WHERE situacao IN ('crítico', 'atenção') GROUP BY situacao"),
+     f"SELECT count_if(situacao = 'crítico') AS projetos_criticos, count_if(situacao = 'atenção') AS projetos_em_atencao "
+     f"FROM {KPI}"),
     ("B5", "Quais clientes têm projetos críticos?",
      f"SELECT DISTINCT cliente FROM {KPI} WHERE situacao = 'crítico' ORDER BY cliente"),
-    ("B6", "Qual o estouro previsto da carteira?",
-     f"SELECT round(estouro_previsto_total / 1e6, 2) AS estouro_milhoes FROM {CARTEIRA}"),
+    ("B6", "Qual o estouro previsto da carteira?", f"SELECT estouro_previsto_total FROM {CARTEIRA}"),
     ("B7", "Qual projeto tem o maior estouro previsto?",
-     f"SELECT projeto_id, round(estouro_previsto / 1e6, 2) AS estouro_milhoes FROM {KPI} ORDER BY estouro_previsto DESC LIMIT 1"),
+     f"SELECT projeto_id, estouro_previsto FROM {KPI} ORDER BY estouro_previsto DESC LIMIT 1"),
     ("B8", "Qual o estouro previsto por segmento?",
-     f"SELECT segmento, round(sum(estouro_previsto) / 1e6, 2) AS estouro_milhoes FROM {KPI} GROUP BY segmento ORDER BY 2 DESC"),
-    ("B9", "Qual o CPI do PRJ-009?", f"SELECT round(cpi, 2) AS cpi FROM {KPI} WHERE projeto_id = 'PRJ-009'"),
+     f"SELECT segmento, sum(estouro_previsto) AS estouro_previsto FROM {KPI} GROUP BY segmento ORDER BY 2 DESC"),
+    ("B9", "Qual o CPI do PRJ-009?", f"SELECT cpi FROM {KPI} WHERE projeto_id = 'PRJ-009'"),
     ("B10", "Quais projetos estão com farol verde mas atrasados?",
      f"SELECT projeto_id FROM {KPI} WHERE melancia ORDER BY projeto_id"),
     ("B11", "Qual o SPI da carteira por ferramenta?",
-     f"SELECT ferramenta, round(sum(ev) / sum(pv), 2) AS spi FROM {KPI} GROUP BY ferramenta ORDER BY ferramenta"),
+     f"SELECT ferramenta, sum(ev) / sum(pv) AS spi_agregado FROM {KPI} GROUP BY ferramenta ORDER BY ferramenta"),
     ("B12", "Qual o SPI e o CPI da carteira?",
-     f"SELECT round(sum(ev) / sum(pv), 2) AS spi, round(sum(ev) / sum(ac), 2) AS cpi FROM {KPI}"),
+     f"SELECT sum(ev) / sum(pv) AS spi_agregado, sum(ev) / sum(ac) AS cpi_agregado FROM {KPI}"),
 ]
 
 
@@ -217,7 +218,7 @@ def avaliar():
                       "motivos": r.get("assessment_reasons") or det.get("assessment_reasons"),
                       "sql_gerado": atual.get("response")})
     saida.sort(key=lambda x: int(x["codigo"][1:]) if x["codigo"][1:].isdigit() else 99)
-    (AQUI / "avaliacao_genie.json").write_text(json.dumps({"eval_run_id": run_id, "status": st.get("eval_run_status"),
+    (AQUI / os.environ.get("SAIDA_AVALIACAO", "avaliacao_genie.json")).write_text(json.dumps({"eval_run_id": run_id, "status": st.get("eval_run_status"),
                                                            "resultados": saida}, ensure_ascii=False, indent=2),
                                                encoding="utf-8")
     for s in saida:

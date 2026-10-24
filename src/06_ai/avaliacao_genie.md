@@ -1,6 +1,8 @@
 # Avaliação do espaço Genie "Saúde da entrega" (CRISP-DM fase 5)
 
-Espaço criado por [`genie_espaco.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/genie_espaco.py) (definição em [`genie_espaco.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/genie_espaco.json)), sobre `gold.kpi_projeto` e `gold.kpi_carteira`. Avaliação nativa do Genie (modo Chat, `genie-create-eval-run`) com 12 benchmarks, um por pergunta de negócio de D1–D3; resultado bruto em [`avaliacao_genie.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/avaliacao_genie.json).
+Espaço criado por [`genie_espaco.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/genie_espaco.py) (definição em [`genie_espaco.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/genie_espaco.json)), sobre `gold.kpi_projeto` e `gold.kpi_carteira`. Avaliação nativa do Genie (modo Chat, `genie-create-eval-run`) com 12 benchmarks, um por pergunta de negócio de D1–D3; resultados brutos em [`avaliacao_genie_rodada1.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/avaliacao_genie_rodada1.json) e [`avaliacao_genie_rodada2.json`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/06_ai/avaliacao_genie_rodada2.json).
+
+**Resumo:** o Genie acertou os 12 valores nas duas rodadas. O avaliador nativo foi de 3 de 12 para **11 de 12** depois do reparo dos benchmarks (só as respostas esperadas mudaram; o espaço não foi alterado).
 
 ## Resultado — 1ª rodada (24/10/2026)
 
@@ -34,6 +36,16 @@ Nenhuma falha é de resposta errada; todas são de **desenho do benchmark** (as 
 - O glossário, os comentários de coluna e as instruções funcionaram: nenhuma resposta confundiu índice com média, nem trocou "atrasado" por outra regra.
 - Benchmark de modo Chat deve guardar **o valor bruto**, sem formatação; a formatação é papel da resposta em linguagem natural.
 
+## Resultado — 2ª rodada, após o reparo dos benchmarks
+
+Reparo (só nas definições dos benchmarks, sem tocar no espaço): SQL esperado com o **valor bruto**, sem `round` e sem conversão para milhões; B4 numa linha com duas colunas; B11 e B12 com os nomes `spi_agregado` e `cpi_agregado`.
+
+| Avaliador nativo | Valores corretos |
+|---|---|
+| **11 de 12** GOOD | **12 de 12** |
+
+A única marcação restante, **B4**, é de formato: nesta rodada o Genie respondeu em duas linhas (atenção 10, crítico 7) e o esperado agora é uma linha. Ele alterna o formato entre rodadas para a mesma pergunta; os valores estão certos nas duas. Opções, se for necessário fechar 12 de 12 no avaliador: reformular a pergunta para pedir explicitamente "por situação" ou fixar o formato com uma consulta de exemplo.
+
 ## Próximo passo
 
-Passagem de **reparo dos benchmarks** (só as definições, sem mexer no espaço): SQL esperado sem `round` e sem `/ 1e6`, B4 em formato de uma linha. Depois, nova rodada como linha de base e, se necessário, ampliação para ~30 itens (2–3 formulações por pergunta) antes de qualquer otimização do espaço.
+A 2ª rodada é a linha de base. Para otimizar o espaço com segurança, ampliar o conjunto para ~30 itens (2–3 formulações por pergunta, incluindo perguntas de glossário e de corte por cliente e gerente) e só então fazer passagens de ajuste, uma por vez.

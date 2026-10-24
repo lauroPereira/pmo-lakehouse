@@ -1,0 +1,93 @@
+{
+  "eval_run_id": "01f1cf757fa1141889672d1a9f415d2f",
+  "status": "DONE",
+  "resultados": [
+    {
+      "codigo": "B1",
+      "pergunta": "Quantos projetos estão atrasados?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "WITH `ultima_data` AS (\n  SELECT MAX(`data_corte`) AS `data_corte`\n  FROM `workspace`.`gold`.`kpi_projeto`\n  WHERE `data_corte` IS NOT NULL\n)\nSELECT\n  u.`data_corte`,\n  COUNT(*) AS `projetos_atrasados`\nFROM `workspace`.`gold`.`kpi_projeto` p\nCROSS JOIN `ultima_data` u\nWHERE p.`data_corte` = u.`data_corte`\n  AND p.`spi` IS NOT NULL\n  AND p.`spi` < 0.9\nGROUP BY u.`data_corte`"
+    },
+    {
+      "codigo": "B2",
+      "pergunta": "Quais os 5 projetos com pior SPI?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "WITH `ranked` AS (\n  SELECT\n    `projeto_id`,\n    `cliente`,\n    `gerente`,\n    `data_corte`,\n    `spi`,\n    RANK() OVER (ORDER BY `spi` ASC) AS `rank_spi`\n  FROM `workspace`.`gold`.`kpi_projeto`\n  WHERE `spi` IS NOT NULL\n    AND `projeto_id` IS NOT NULL\n)\nSELECT\n  `projeto_id`,\n  `cliente`,\n  `gerente`,\n  `data_corte`,\n  `spi`\nFROM `ranked`\nWHERE `rank_spi` <= 5\nORDER BY `spi` ASC, `projeto_id` ASC"
+    },
+    {
+      "codigo": "B3",
+      "pergunta": "Qual o SPI do PRJ-011?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `projeto_id`, `data_corte`, `spi`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `projeto_id` = 'PRJ-011'\n  AND `spi` IS NOT NULL\n  AND `data_corte` IS NOT NULL\nORDER BY `data_corte` DESC\nLIMIT 1"
+    },
+    {
+      "codigo": "B4",
+      "pergunta": "Quantos projetos estão em situação crítica e quantos em atenção?",
+      "avaliacao": "BAD",
+      "motivos": [
+        "RESULT_MISSING_COLUMNS",
+        "LLM_JUDGE_MISSING_OR_INCORRECT_AGGREGATION"
+      ],
+      "sql_gerado": "WITH `ultima_data` AS (\n  SELECT MAX(`data_corte`) AS `data_corte`\n  FROM `workspace`.`gold`.`kpi_projeto`\n)\nSELECT\n  `p`.`data_corte`,\n  `p`.`situacao`,\n  COUNT(*) AS `quantidade_projetos`\nFROM `workspace`.`gold`.`kpi_projeto` AS `p`\nINNER JOIN `ultima_data` AS `u`\n  ON `p`.`data_corte` = `u`.`data_corte`\nWHERE `p`.`situacao` IS NOT NULL\n  AND `p`.`situacao` IN ('crítico', 'atenção')\nGROUP BY `p`.`data_corte`, `p`.`situacao`\nORDER BY `p`.`situacao`"
+    },
+    {
+      "codigo": "B5",
+      "pergunta": "Quais clientes têm projetos críticos?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `cliente`, COUNT(*) AS `projetos_criticos`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `situacao` = 'crítico'\n  AND `cliente` IS NOT NULL\nGROUP BY `cliente`\nORDER BY `projetos_criticos` DESC, `cliente` ASC"
+    },
+    {
+      "codigo": "B6",
+      "pergunta": "Qual o estouro previsto da carteira?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `data_corte`, `estouro_previsto_total`\nFROM `workspace`.`gold`.`kpi_carteira`\nWHERE `data_corte` IS NOT NULL\nORDER BY `data_corte` DESC\nLIMIT 1"
+    },
+    {
+      "codigo": "B7",
+      "pergunta": "Qual projeto tem o maior estouro previsto?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "WITH `ranked` AS (\n  SELECT\n    `projeto_id`,\n    `cliente`,\n    `data_corte`,\n    `estouro_previsto`,\n    RANK() OVER (ORDER BY `estouro_previsto` DESC) AS `rank_maior_estouro`\n  FROM `workspace`.`gold`.`kpi_projeto`\n  WHERE `estouro_previsto` IS NOT NULL\n    AND `projeto_id` IS NOT NULL\n)\nSELECT\n  `projeto_id`,\n  `cliente`,\n  `data_corte`,\n  `estouro_previsto`\nFROM `ranked`\nWHERE `rank_maior_estouro` = 1"
+    },
+    {
+      "codigo": "B8",
+      "pergunta": "Qual o estouro previsto por segmento?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `segmento`, SUM(`estouro_previsto`) AS `estouro_previsto_total` FROM `workspace`.`gold`.`kpi_projeto` WHERE `segmento` IS NOT NULL GROUP BY `segmento` ORDER BY `estouro_previsto_total` DESC"
+    },
+    {
+      "codigo": "B9",
+      "pergunta": "Qual o CPI do PRJ-009?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `projeto_id`, `data_corte`, `cpi`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `projeto_id` = 'PRJ-009'\n  AND `cpi` IS NOT NULL\n  AND `data_corte` IS NOT NULL\nORDER BY `data_corte` DESC\nLIMIT 1"
+    },
+    {
+      "codigo": "B10",
+      "pergunta": "Quais projetos estão com farol verde mas atrasados?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `projeto_id`, `cliente`, `gerente`, `data_corte`, `farol_declarado`, `farol_calculado`, `spi`, `situacao`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `farol_declarado` IS NOT NULL\n  AND `spi` IS NOT NULL\n  AND `farol_declarado` = 'verde'\n  AND `spi` < 0.9\nORDER BY `spi` ASC, `projeto_id` ASC"
+    },
+    {
+      "codigo": "B11",
+      "pergunta": "Qual o SPI da carteira por ferramenta?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `ferramenta`, try_divide(SUM(`ev`),SUM(`pv`)) AS `spi_agregado`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `ferramenta` IS NOT NULL\n  AND `pv` IS NOT NULL\n  AND `ev` IS NOT NULL\nGROUP BY `ferramenta`\nHAVING SUM(`pv`) IS NOT NULL AND SUM(`pv`) <> 0\nORDER BY `spi_agregado` ASC, `ferramenta` ASC"
+    },
+    {
+      "codigo": "B12",
+      "pergunta": "Qual o SPI e o CPI da carteira?",
+      "avaliacao": "GOOD",
+      "motivos": null,
+      "sql_gerado": "SELECT `data_corte`, try_divide(SUM(`ev`),SUM(`pv`)) AS `spi_carteira`, try_divide(SUM(`ev`),SUM(`ac`)) AS `cpi_carteira`\nFROM `workspace`.`gold`.`kpi_projeto`\nWHERE `data_corte` IS NOT NULL\n  AND `ev` IS NOT NULL\n  AND `pv` IS NOT NULL\n  AND `ac` IS NOT NULL\nGROUP BY `data_corte`\nORDER BY `data_corte` DESC\nLIMIT 1"
+    }
+  ]
+}
