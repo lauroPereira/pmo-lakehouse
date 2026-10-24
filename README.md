@@ -2,8 +2,6 @@
 
 Saúde da entrega numa fábrica de software: lakehouse em Databricks com camada de qualidade de dados.
 
-> 🚧 Em construção (outubro de 2026).
-
 ## O problema
 
 Uma fábrica de software com 60 projetos de clientes controla cada um numa ferramenta diferente (Excel, ClickUp, MS Project). A diretoria não consegue dizer **quais projetos estão atrasados, quanto o atraso vai custar e em quais o status reportado não bate com a realidade**. Este é o escopo do primeiro ciclo; ociosidade de pessoas, atraso de fornecedores e previsão de risco ficam no backlog. O entendimento completo do negócio está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/01_entendimento_negocio.py).
