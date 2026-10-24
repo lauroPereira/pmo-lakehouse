@@ -1,6 +1,6 @@
 # Chaves de idempotência e marcas d'água da bronze
 
-Como as chaves e as colunas de data da bronze foram escolhidas, e o que o perfilamento mostrou. O teste de unicidade é reproduzível na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py). A análise das colunas de marca d'água foi feita quando a extração era incremental ([commit 08079f7](https://github.com/lauroPereira/pmo-lakehouse/tree/08079f7)) e fica aqui como registro.
+Como as chaves e as colunas de data da bronze foram escolhidas, e o que o perfilamento mostrou. O teste de unicidade é reproduzível na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/02_entendimento_dados.py). A análise das colunas de marca d'água foi feita quando a extração era incremental ([commit 08079f7](https://github.com/lauroPereira/pmo-lakehouse/tree/08079f7)) e fica aqui como registro.
 
 ## Método
 

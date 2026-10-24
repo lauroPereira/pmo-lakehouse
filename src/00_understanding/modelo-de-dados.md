@@ -41,7 +41,7 @@ Arquivos Parquet imutáveis, um diretório por origem e por snapshot: `<fonte>/<
 | Coluna técnica | Tipo | Significado |
 |---|---|---|
 | `_hash` | string | SHA-256 do conteúdo da linha (no Mongo, do documento sem `_id` e `_carregado_em`) |
-| `_chave` | string | chave natural do registro (ver [chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md)) |
+| `_chave` | string | chave natural do registro (ver [chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/chaves-idempotencia.md)) |
 | `_extraido_em` | timestamp | instante da extração (desempata snapshots do mesmo dia) |
 | `_lote_id` | string | identificador do snapshot |
 | `dt_raw` | date | partição do diretório: data da extração |

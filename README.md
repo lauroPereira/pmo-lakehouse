@@ -6,7 +6,7 @@ Saúde da entrega numa fábrica de software: lakehouse em Databricks com camada 
 
 ## O problema
 
-Uma fábrica de software com 60 projetos de clientes controla cada um numa ferramenta diferente (Excel, ClickUp, MS Project). A diretoria não consegue dizer **quais projetos estão atrasados, quanto o atraso vai custar e em quais o status reportado não bate com a realidade**. Este é o escopo do primeiro ciclo; ociosidade de pessoas, atraso de fornecedores e previsão de risco ficam no backlog. O entendimento completo do negócio está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py).
+Uma fábrica de software com 60 projetos de clientes controla cada um numa ferramenta diferente (Excel, ClickUp, MS Project). A diretoria não consegue dizer **quais projetos estão atrasados, quanto o atraso vai custar e em quais o status reportado não bate com a realidade**. Este é o escopo do primeiro ciclo; ociosidade de pessoas, atraso de fornecedores e previsão de risco ficam no backlog. O entendimento completo do negócio está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/01_entendimento_negocio.py).
 
 ## Metodologia: CRISP-DM
 
@@ -14,8 +14,8 @@ O projeto segue o CRISP-DM: tudo parte da dor do negócio, e cada fase deixa um 
 
 | Fase | Artefato | Status |
 |---|---|---|
-| 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
-| 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas e [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) | Feito |
+| 1. Entendimento do negócio | [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/01_entendimento_negocio.py): empresa, pessoas, sistemas, dores, escopo D1–D3 e backlog | Feito |
+| 2. Entendimento dos dados | [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/02_entendimento_dados.py): perfil das fontes, 13 defeitos medidos (Q1–Q13) e 11 de 11 evidências da fase 1 confirmadas e [src/00_understanding/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/chaves-idempotencia.md) | Feito |
 | 3. Preparação dos dados | Landing e bronze; silver [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_cadastros.py) e [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_tarefas.py): limpeza, tipos, wrangling, integração das 3 ferramentas e atributos por tarefa, com quarentena e registro de qualidade | Feito |
 | 4. Modelagem | [`gold_kpis`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/04_modeling/gold_kpis.py): valor agregado (SPI, CPI, EAC, estouro) e farol calculado, por projeto e carteira | Feito |
 | 5. Avaliação | [`avaliacao`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/05_evaluation/avaliacao.py): 15 itens esperado × encontrado a cada execução (15 de 15); perguntas de avaliação do Genie a fazer | Em andamento |
@@ -35,19 +35,19 @@ Medalhão no Databricks Free Edition (Unity Catalog, serverless): `landing` (sna
 
 ## Dados
 
-O modelo de dados de cada camada (landing, bronze, silver e gold), em diagramas entidade-relacionamento, está em [docs/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/modelo-de-dados.md).
+O modelo de dados de cada camada (landing, bronze, silver e gold), em diagramas entidade-relacionamento, está em [src/00_understanding/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/modelo-de-dados.md).
 
 Sintéticos, de uma empresa fictícia (Vértice Tecnologia) fornecida pela imersão. Nenhum dado real de clientes ou empregadores.
 
 ## Origem e créditos
 
-O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. A narrativa de negócio (pessoas, sistemas e dores) é uma simulação minha sobre esse caso fictício. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [docs/arquitetura.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/arquitetura.md).
+O caso e os dados sintéticos da Vértice Tecnologia vêm da imersão gratuita **"Databricks + Claude Code: projeto de dados do zero"**, do canal Jornada de Dados no YouTube (Luciano Vasconcelos), usada aqui como referência. Os dados brutos do curso não estão neste repositório. A narrativa de negócio (pessoas, sistemas e dores) é uma simulação minha sobre esse caso fictício. Arquitetura, pipeline, regras de qualidade e análises são meus; o desenho está em [src/00_understanding/arquitetura.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/arquitetura.md).
 
 ## Organização do código
 
 | Pasta | Papel |
 |---|---|
-| `src/understanding/` | Fases 1 e 2 do CRISP-DM: entendimento do negócio e dos dados |
+| `src/00_understanding/` | Fases 1 e 2 do CRISP-DM: entendimento do negócio e dos dados |
 | `src/sources/` | Simula os sistemas de origem (não faz parte do pipeline) |
 | `src/01_extraction/` | Origem → landing (Parquet) |
 | `src/02_ingestion/` | Landing → bronze (Auto Loader) |
@@ -127,7 +127,7 @@ Registro do que foi executado, em ordem.
 9. **Bronze** ([`src/02_ingestion/ingestao_bronze.py`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/02_ingestion/ingestao_bronze.py)): lê a landing com **Auto Loader** (`cloudFiles`, só arquivos novos, via checkpoint) e grava em `workspace.bronze` (`pg_<schema>_<tabela>`, `mongo_<coleção>`).
    - Cada linha leva `_arquivo` (o Parquet que a originou), `dt_raw`, `_origem`, `_carregado_em`, `_hash`, `_chave`, `_extraido_em` e `_lote_id`.
    - **Idempotência em dois níveis:** por arquivo (checkpoint do Auto Loader) e por conteúdo (`MERGE` só de inserção por `_hash`). Ler um snapshot repetido não duplica nada; linha alterada entra como nova versão, com histórico. A silver escolhe a versão vigente por `_chave`.
-   - **Chaves naturais:** método e resultados em [docs/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md), reproduzíveis na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/02_entendimento_dados.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
+   - **Chaves naturais:** método e resultados em [src/00_understanding/chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/chaves-idempotencia.md), reproduzíveis na seção 1.1 de [`02_entendimento_dados`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/02_entendimento_dados.py). Únicas em todas as tabelas, exceto `colaborador_id` (3 duplicados que diferem só na caixa do nome; seguem na bronze e a silver normaliza).
    - `bronze._controle_carga`: arquivos novos, linhas inseridas e a conferência de que todo hash da landing está na bronze; o notebook falha se algum faltar.
 
    **Evidência:**

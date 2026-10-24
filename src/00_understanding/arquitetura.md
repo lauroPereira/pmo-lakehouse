@@ -1,6 +1,6 @@
 # Arquitetura
 
-Desenho técnico do pipeline. O que é negócio (empresa, dores, escopo D1–D3, critérios de sucesso de negócio) está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/understanding/01_entendimento_negocio.py); o andamento por fase do CRISP-DM está no [README](https://github.com/lauroPereira/pmo-lakehouse/blob/main/README.md#metodologia-crisp-dm).
+Desenho técnico do pipeline. O que é negócio (empresa, dores, escopo D1–D3, critérios de sucesso de negócio) está em [`01_entendimento_negocio`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/01_entendimento_negocio.py); o andamento por fase do CRISP-DM está no [README](https://github.com/lauroPereira/pmo-lakehouse/blob/main/README.md#metodologia-crisp-dm).
 
 ## Tese
 
@@ -16,7 +16,7 @@ MongoDB (Atlas) ───────┘   snapshot       dt_raw/lote        Aut
 
 ## Camadas (Unity Catalog, serverless)
 
-Colunas, tipos e relacionamentos de cada camada: [docs/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/modelo-de-dados.md).
+Colunas, tipos e relacionamentos de cada camada: [src/00_understanding/modelo-de-dados.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/modelo-de-dados.md).
 
 | Camada | Onde | Conteúdo | Código |
 |---|---|---|---|
@@ -32,7 +32,7 @@ Colunas, tipos e relacionamentos de cada camada: [docs/modelo-de-dados.md](https
 | Decisão | Motivo | Onde está documentada |
 |---|---|---|
 | Landing com snapshot completo | reprocessar a bronze sem tocar nas origens; detectar exclusões comparando snapshots | README, passo 8 |
-| Idempotência por hash do conteúdo | as origens não têm `updated_at` nem CDC | [chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/docs/chaves-idempotencia.md) |
+| Idempotência por hash do conteúdo | as origens não têm `updated_at` nem CDC | [chaves-idempotencia.md](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/00_understanding/chaves-idempotencia.md) |
 | JSON cru do Mongo na bronze | não inferir schema de dado sujo; a silver interpreta | README, passo 9 |
 | Tudo como texto no Postgres de origem | simular sistema legado e preservar os defeitos | README, passo 7 |
 | Silver recalculada a cada execução | volume pequeno; recálculo é idempotente e simples de auditar | README, passo 10 |

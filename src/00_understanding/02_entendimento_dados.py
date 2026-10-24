@@ -90,7 +90,7 @@ display(spark.sql("""
 # MAGIC ### 1.1 Chaves naturais (todas as fontes)
 # MAGIC
 # MAGIC A chave natural identifica um registro na origem; ela fundamenta a idempotência da bronze e a escolha da versão
-# MAGIC vigente na silver (método em `docs/chaves-idempotencia.md`). O teste é feito no **snapshot mais recente da
+# MAGIC vigente na silver (método em `src/00_understanding/chaves-idempotencia.md`). O teste é feito no **snapshot mais recente da
 # MAGIC landing**, isto é, na origem como foi entregue: `count(*)` contra `count(distinct chave)`.
 # MAGIC
 # MAGIC | Fonte | Chave candidata |
