@@ -142,6 +142,7 @@ Registro do que foi executado, em ordem.
    Depois da simulação, landing, bronze e checkpoints foram apagados e refeitos com as origens restauradas, para não deixar linhas simuladas.
 
 10. **Silver** (fase 3 do CRISP-DM), recalculada a cada execução a partir da versão vigente da bronze:
+    - Organização dos notebooks: como na bronze, cada um tem etapas nomeadas e declara o que muda em listas — `Preparacao` e `Regra` em `silver_cadastros`, `Ferramenta` em `silver_tarefas`, `Etapa` em `gold_kpis` e `Checagem` em `avaliacao`. Incluir uma regra, uma ferramenta, um KPI ou uma checagem é acrescentar um item na lista.
     - [`silver_cadastros`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_cadastros.py): `silver.projetos` (ferramenta normalizada, datas nos 2 formatos), `silver.status_semanal` (farol normalizado e validado) e `silver.custos` (vírgula decimal corrigida, estorno sinalizado).
     - [`silver_tarefas`](https://github.com/lauroPereira/pmo-lakehouse/blob/main/src/03_transformation/silver_tarefas.py): `silver.tarefas`, o modelo único das 3 ferramentas (4.917 tarefas). Limpeza (TOTAL e tarefas-resumo descartadas), padronização de tipos (datas, % e horas em vários formatos), wrangling (JSON aberto; a fase do MS Project herdada da tarefa-resumo), integração (ClickUp ligado ao cadastro pelo código ou pelo nome) e atributos por tarefa (fração planejada, horas agregadas e planejadas, desvio, atraso).
     - Qualidade: cada regra Q1–Q13 grava quantas linhas corrigiu, sinalizou, descartou ou pôs em quarentena em `silver.qualidade`; o que foi descartado ou ficou em quarentena vai para `silver.quarentena` com o motivo e o registro original.
@@ -160,6 +161,7 @@ Registro do que foi executado, em ordem.
 - **`bundle deploy` não desfaz edições feitas no workspace.** Ele só envia o que mudou localmente; para sobrescrever uma edição feita direto na pasta do bundle, use `databricks bundle sync --full`. Edite sempre no repositório.
 - **Contadores dentro do `foreachBatch` não voltam no serverless** (a função roda no servidor). A contagem de arquivos processados vem de `cloud_files_state(checkpoint)`.
 - **ANSI ligado no serverless:** `cast` inválido e divisão por zero geram erro em vez de nulo; a silver usa `try_cast`, `try_to_timestamp` e `try_divide`.
+- **Soma de `double` varia no último dígito entre execuções** (a ordem de soma muda): `gold.kpi_carteira` pode trazer `1.6100521125E8` ou `1.6100521125000003E8`. Comparações de regressão devem usar tolerância ou arredondar.
 - **`collect_list` não garante ordem**, mesmo depois de um `order by` na subconsulta; a avaliação monta textos com agregações explícitas.
 - **`pymongo[srv]`** não existe como extra na versão 4.10; basta `pymongo` (traz `dnspython`).
 
